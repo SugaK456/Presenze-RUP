@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RUP - Pannello Presenze Direzione</title>
+  <link rel="icon" type="image/png" href="icona-192.png">
+  <style>
+    :root {
+      --primary: #22334C;       /* Blu ardesia istituzionale RUP */
+      --accent: #EA5B39;        /* Terracotta Preziosina */
+      --bg: #F4F6F9;
+      --card: #FFFFFF;
+      --text: #22334C;
+      --text-muted: #6B7C93;
+      --green: #2E7D32;
+      --green-bg: #E8F5E9;
+      --red: #C62828;
+      --red-bg: #FFEBEE;
+      --border: #E2E8F0;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: var(--primary);
+      color: #FFFFFF;
+      padding: 18px 24px;
+      border-bottom: 4px solid var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: var(--primary);
+      font-size: 1.1rem;
+      border: 2px solid var(--accent);
+    }
+
+    .brand-title h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .brand-title span {
+      font-size: 0.8rem;
+      color: #D1D8E2;
+      letter-spacing: 0.3px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .clock-badge {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-refresh {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-refresh:hover {
+      opacity: 0.9;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* Stats Overview */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      border-top: 4px solid var(--border);
+      text-align: center;
+    }
+
+    .stat-card.presenti { border-top-color: var(--green); }
+    .stat-card.assenti { border-top-color: var(--red); }
+    .stat-card.totale { border-top-color: var(--primary); }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 4px 0 0;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Search & Filter Bar */
+    .controls-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #FFFFFF;
+      color: var(--text);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .filter-btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .filter-btn {
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    /* Resident List */
+    .list-wrapper {
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .list-header {
+      padding: 14px 20px;
+      background: #FAFCFE;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: grid;
+      grid-template-columns: 80px 1fr 140px;
+      align-items: center;
+    }
+
+    .resident-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 140px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
+    }
+
+    .resident-row:last-child {
+      border-bottom: none;
+    }
+
+    .resident-row:hover {
+      background: #F9FBFC;
+    }
+
+    .room-badge {
+      display: inline-block;
+      background: #EBF1F6;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 5px 8px;
+      border-radius: 6px;
+      text-align: center;
+      width: fit-content;
+    }
+
+    .name-col {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .status-col {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .status-pill.in {
+      background: var(--green-bg);
+      color: var(--green);
+    }
+
+    .status-pill.out {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .status-pill.in .status-dot {
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(46, 125, 50, 0.45);
+    }
+
+    .status-pill.out .status-dot {
+      background: var(--red);
+      box-shadow: 0 0 6px rgba(198, 40, 40, 0.45);
+    }
+
+    .loading-state {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 560px) {
+      .list-header { display: none; }
+      .resident-row {
+        grid-template-columns: 60px 1fr auto;
+        padding: 12px 14px;
+      }
+      .name-col { font-size: 0.9rem; }
+      .status-pill { padding: 4px 10px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">RUP</div>
+      <div class="brand-title">
+        <h1>Residenza Preziosina</h1>
+        <span>Quadro Presenze Giornaliero</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="clock-badge" id="liveClock">--:--:--</div>
+      <button class="btn-refresh" onclick="fetchStatus()">Aggiorna</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats-grid">
+      <div class="stat-card presenti">
+        <div class="stat-label">In Residenza</div>
+        <div class="stat-number" id="countPresenti" style="color: var(--green);">0</div>
+      </div>
+      <div class="stat-card assenti">
+        <div class="stat-label">Assenti</div>
+        <div class="stat-number" id="countAssenti" style="color: var(--red);">0</div>
+      </div>
+      <div class="stat-card totale">
+        <div class="stat-label">Totale Residenti</div>
+        <div class="stat-number" id="countTotale" style="color: var(--primary);">0</div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <input type="text" id="searchInput" class="search-input" placeholder="Cerca per nome o camera..." oninput="filterResidents()">
+      <div class="filter-btn-group">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tutti</button>
+        <button class="filter-btn" data-filter="in" onclick="setFilter('in', this)">In Residenza</button>
+        <button class="filter-btn" data-filter="out" onclick="setFilter('out', this)">Assenti</button>
+      </div>
+    </div>
+
+    <div class="list-wrapper">
+      <div class="list-header">
+        <div>Camera</div>
+        <div>Residente</div>
+        <div style="text-align: right;">Stato Attuale</div>
+      </div>
+      <div id="residentsList">
+        <div class="loading-state">Caricamento presenze in tempo reale...</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // INSERISCI QUI IL LINK DELLA TUA WEB APP GOOGLE APPS SCRIPT (lo stesso usato in index.html)
+    const APPS_SCRIPT_URL = "INSERISCI_QUI_URL_SCRIPT";
+
+    let residentsData = [];
+    let currentFilter = 'all';
+
+    function updateLiveClock() {
+      const now = new Date();
+      const options = {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      };
+      document.getElementById('liveClock').innerText = now.toLocaleString('it-IT', options);
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    async function fetchStatus() {
+      const listContainer = document.getElementById('residentsList');
+      try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=getStatus&timestamp=${new Date().toISOString()}`);
+        residentsData = await response.json();
+        renderList();
+      } catch (error) {
+        console.error("Errore nel recupero dati:", error);
+        listContainer.innerHTML = `
+          <div class="loading-state" style="color: var(--red);">
+            ⚠️ Impossibile caricare i dati. Assicurati che l'URL dello script sia corretto e distribuito a 'Chiunque'.
+          </div>
+        `;
+      }
+    }
+
+    function renderList() {
+      const listContainer = document.getElementById('residentsList');
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      let inCount = 0;
+      let outCount = 0;
+
+      // Conteggio globale
+      residentsData.forEach(r => {
+        if (r.presente) inCount++;
+        else outCount++;
+      });
+
+      document.getElementById('countPresenti').innerText = inCount;
+      document.getElementById('countAssenti').innerText = outCount;
+      document.getElementById('countTotale').innerText = residentsData.length;
+
+      // Filtro ricerca + filtro stato
+      const filtered = residentsData.filter(r => {
+        const matchesSearch = r.nome.toLowerCase().includes(searchTerm) || String(r.camera).toLowerCase().includes(searchTerm);
+        if (!matchesSearch) return false;
+
+        if (currentFilter === 'in') return r.presente;
+        if (currentFilter === 'out') return !r.presente;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `<div class="loading-state">Nessun residente trovato con i filtri attuali.</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(r => `
+        <div class="resident-row">
+          <div><span class="room-badge">${r.camera}</span></div>
+          <div class="name-col">${r.nome}</div>
+          <div class="status-col">
+            <span class="status-pill ${r.presente ? 'in' : 'out'}">
+              <span class="status-dot"></span>
+              ${r.presente ? 'In residenza' : 'Assente'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterResidents() {
+      renderList();
+    }
+
+    function setFilter(filterType, element) {
+      currentFilter = filterType;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      renderList();
+    }
+
+    // Carica al primo avvio
+    fetchStatus();
+
+    // Ricarica automaticamente ogni 60 secondi così scatta il rosso/verde in tempo reale
+    setInterval(fetchStatus, 60000);
+  </script>
+</body>
+</html>
