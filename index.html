@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RUP - Segnalazione Assenze</title>
+
+  <!-- PWA per Android -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1B365D">
+
+  <!-- PWA per iPhone (Icona e schermo intero) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RUP Presenze">
+  <link rel="apple-touch-icon" href="icona-192.png">
+
+  <style>
+    :root {
+  --primary: #22334C;       /* Blu ardesia istituzionale RUP */
+  --accent: #EA5B39;        /* Terracotta / Arancione Preziosina */
+  --bg: #F4F6F9;            /* Grigio chiarissimo di sfondo */
+  --card: #FFFFFF;
+  --text: #22334C;
+}
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    
+    .header {
+      background: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 24px 16px 20px;
+      border-bottom: 3px solid var(--accent);
+    }
+    .header h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.5px; }
+    .header p { margin: 4px 0 0; font-size: 0.8rem; opacity: 0.85; }
+
+    .container { flex: 1; padding: 20px 16px; max-width: 440px; margin: 0 auto; width: 100%; }
+    .card { background: var(--card); border-radius: 12px; padding: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+    
+    .user-badge {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #EBF1F6;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-change { font-size: 0.75rem; color: #888; background: none; border: none; cursor: pointer; text-decoration: underline; }
+
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #444; }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid #DCE2E6;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #FAFAFA;
+    }
+    input:focus { outline: none; border-color: var(--primary); background: #FFF; }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(27, 54, 93, 0.2);
+    }
+    .btn-submit:active { transform: scale(0.98); }
+
+    .feedback { text-align: center; margin-top: 15px; font-weight: 600; font-size: 0.9rem; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>RESIDENZA PREZIOSINA</h1>
+    <p>Comunicazione Assenze</p>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      
+      <!-- Sezione Login (mostrata solo la prima volta) -->
+      <div id="loginSection">
+        <h3 style="margin-top:0; font-size:1.05rem;">Registra il tuo dispositivo</h3>
+        <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Dovrai farlo solo una volta.</p>
+        <div class="form-group">
+          <label>ID Studente / Codice</label>
+          <input type="text" id="inputId" placeholder="Es. R104">
+        </div>
+        <div class="form-group">
+          <label>Nome e Cognome</label>
+          <input type="text" id="inputNome" placeholder="Es. Mario Rossi">
+        </div>
+        <button class="btn-submit" onclick="salvaProfilo()">Accedi e Memorizza</button>
+      </div>
+
+      <!-- Sezione Modulo (mostrata se già registrato) -->
+      <div id="formSection" style="display:none;">
+        <div class="user-badge">
+          <span id="labelUtente">Studente</span>
+          <button class="btn-change" onclick="cancellaProfilo()">Cambia</button>
+        </div>
+
+        <form id="assenzaForm" onsubmit="inviaAssenza(event)">
+          <div class="form-group">
+            <label>Inizio Assenza (Uscita)</label>
+            <input type="datetime-local" id="dataInizio" required>
+          </div>
+          <div class="form-group">
+            <label>Fine Assenza (Rientro previsto)</label>
+            <input type="datetime-local" id="dataFine" required>
+          </div>
+          <button type="submit" class="btn-submit" id="btnInvia">Registra Assenza</button>
+        </form>
+        <div class="feedback" id="feedbackMsg"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // INSERISCI QUI IL LINK DELLA TUA WEB APP GOOGLE APPS SCRIPT
+    const APPS_SCRIPT_URL = "INSERISCI_QUI_URL_SCRIPT";
+
+    // Controlla se lo studente è già registrato sul telefono
+    window.onload = function() {
+      const savedId = localStorage.getItem("rup_id");
+      const savedNome = localStorage.getItem("rup_nome");
+      if (savedId && savedNome) {
+        mostraForm(savedId, savedNome);
+      }
+    };
+
+    function salvaProfilo() {
+      const id = document.getElementById("inputId").value.trim();
+      const nome = document.getElementById("inputNome").value.trim();
+      if (!id || !nome) {
+        alert("Inserisci tutti i campi.");
+        return;
+      }
+      localStorage.setItem("rup_id", id);
+      localStorage.setItem("rup_nome", nome);
+      mostraForm(id, nome);
+    }
+
+    function cancellaProfilo() {
+      if (confirm("Vuoi cambiare utente da questo dispositivo?")) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    function mostraForm(id, nome) {
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("formSection").style.display = "block";
+      document.getElementById("labelUtente").innerText = `${nome} (${id})`;
+    }
+
+    async function inviaAssenza(e) {
+      e.preventDefault();
+      const btn = document.getElementById("btnInvia");
+      const fb = document.getElementById("feedbackMsg");
+      
+      const payload = {
+        action: "segnalaAssenza",
+        studenteId: localStorage.getItem("rup_id"),
+        inizio: document.getElementById("dataInizio").value,
+        fine: document.getElementById("dataFine").value
+      };
+
+      btn.disabled = true;
+      btn.innerText = "Invio in corso...";
+      fb.style.display = "none";
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors", // Compatibile con Google Apps Script standard
+          body: JSON.stringify(payload),
+          headers: { "Content-Type": "application/json" }
+        });
+
+        fb.style.display = "block";
+        fb.style.color = "#2E7D32";
+        fb.innerText = "✓ Assenza registrata correttamente!";
+        document.getElementById("assenzaForm").reset();
+      } catch (err) {
+        fb.style.display = "block";
+        fb.style.color = "#C62828";
+        fb.innerText = "Errore durante l'invio. Riprova.";
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Registra Assenza";
+      }
+    }
+  </script>
+</body>
+</html>
