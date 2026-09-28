@@ -1,20 +1,20 @@
 {
-  "name": "Presenze Preziosina",
   "short_name": "RUP Presenze",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#1B365D",
-  "theme_color": "#1B365D",
+  "name": "Residenza Universitaria Preziosina - Presenze",
   "icons": [
     {
-      "src": "icona-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "icona-192.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192"
     },
     {
-      "src": "icona-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "icona-512.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#22334C",
+  "theme_color": "#22334C",
+  "display": "standalone"
 }
