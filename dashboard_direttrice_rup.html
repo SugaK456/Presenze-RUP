@@ -1,5 +1,158 @@
-const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
-        // Uso della chiave Anon pubblica, come hai fornito
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUP - Portale Direzione Preziosina</title>
+    <!-- Supabase Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #22334C;
+            --accent: #EA5B39;
+            --guest-color: #D97706;
+            --bg-color: #F4F6F9;
+            --card-bg: #FFFFFF;
+            --text: #1E293B;
+            --border: #CBD5E1;
+            --danger: #EF4444;
+            --success: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .app-header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+        .app-header p { font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; }
+
+        .main-container { max-width: 950px; width: 100%; margin: 30px auto; padding: 0 15px; flex: 1; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #E2E8F0;
+            margin-bottom: 25px;
+        }
+
+        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
+
+        .home-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        @media (max-width: 600px) { .home-menu { grid-template-columns: 1fr; } }
+
+        .menu-card {
+            background: white; border: 2px solid #E2E8F0; border-radius: 12px;
+            padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        .menu-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .menu-card.guests { border-color: var(--guest-color); }
+        .menu-card.guests h3 { color: var(--guest-color); margin-bottom: 10px; }
+        .menu-card.residents { border-color: var(--accent); }
+        .menu-card.residents h3 { color: var(--accent); margin-bottom: 10px; }
+        .menu-card p { font-size: 0.85rem; color: #64748B; }
+
+        .controls-row { display: flex; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
+        .search-bar { flex: 1; min-width: 220px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        .search-bar:focus { border-color: var(--accent); }
+        .filter-buttons { display: flex; gap: 6px; }
+        .btn-filter { padding: 10px 14px; background: #F1F5F9; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; }
+        .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .back-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; font-size: 0.9rem; margin-bottom: 15px; display: inline-flex; gap: 6px; }
+        .back-btn:hover { text-decoration: underline; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid #E2E8F0; }
+        th { background-color: #F8FAFC; color: var(--primary); font-weight: 600; }
+        tr:hover { background-color: #F8FAFC; }
+        tr.alert-row { background-color: #FEF2F2 !important; border-left: 4px solid var(--danger); }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-danger { background: #FEE2E2; color: #991B1B; }
+        .badge-success { background: #D1E7DD; color: #0F5132; }
+
+        .hidden { display: none; }
+        .alert-box { padding: 12px; background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; border-radius: 6px; font-size: 0.9rem; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <h1>RESIDENZA UNIVERSITARIA PREZIOSINA</h1>
+        <p>Piattaforma di Controllo Direzione</p>
+    </header>
+
+    <div class="main-container">
+        
+        <div id="homeView">
+            <div class="card" style="text-align: center; padding: 30px;">
+                <h2 style="color: var(--primary); margin-bottom: 8px;">Benvenuta, Direttrice</h2>
+                <p style="color: #64748B; font-size: 0.9rem;">Seleziona la sezione che desideri consultare:</p>
+                <div class="home-menu">
+                    <div class="menu-card guests" onclick="mostraSezione('guestsSection')">
+                        <h3>👥 Registro Ospiti</h3>
+                        <p>Visualizza l'elenco completo degli ospiti in struttura.</p>
+                    </div>
+                    <div class="menu-card residents" onclick="mostraSezione('residentsSection')">
+                        <h3>🚪 Residenti</h3>
+                        <p>Monitora presenze, assenze programmate e ricerca rapida per camera.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="guestsSection" class="hidden">
+            <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
+            <div class="card">
+                <h2 class="section-title" style="color: var(--guest-color);">👥 Registro Ospiti in Struttura</h2>
+                <div id="ospitiTableContainer"><p>Caricamento ospiti...</p></div>
+            </div>
+        </div>
+
+        <div id="residentsSection" class="hidden">
+            <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
+            <div class="card">
+                <h2 class="section-title" style="color: var(--accent);">🚪 Gestione Residenti (Presenze & Assenze)</h2>
+                
+                <div class="controls-row">
+                    <input type="text" id="searchResidenti" class="search-bar" placeholder="🔍 Cerca per nome o stanza..." onkeyup="applicaFiltriResidenti()">
+                    <div class="filter-buttons">
+                        <button class="btn-filter active" id="btnTutti" onclick="impostaFiltro('tutti')">Tutti</button>
+                        <button class="btn-filter" id="btnPresenti" onclick="impostaFiltro('presenti')">Presenti</button>
+                        <button class="btn-filter" id="btnAssenti" onclick="impostaFiltro('assenti')">Assenti</button>
+                    </div>
+                </div>
+                <div id="residentiTableContainer"><p>Caricamento dati residenti...</p></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tutto il JavaScript deve stare dentro a questo blocco script -->
+    <script>
+        const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
         const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
         
         let supabaseClient = null;
@@ -153,3 +306,6 @@ const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
             html += `</tbody></table>`;
             container.innerHTML = html;
         }
+    </script>
+</body>
+</html>
