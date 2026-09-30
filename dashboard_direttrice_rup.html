@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RUP - Dashboard Direttrice (Presenze & Ospiti)</title>
+    <title>RUP - Portale Direzione Preziosina</title>
     <!-- Supabase Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -84,6 +84,77 @@
             gap: 8px;
         }
 
+        /* Home Sezione Scelta */
+        .home-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .home-menu { grid-template-columns: 1fr; }
+        }
+
+        .menu-card {
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .menu-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+
+        .menu-card.guests { border-color: var(--guest-color); }
+        .menu-card.guests h3 { color: var(--guest-color); }
+
+        .menu-card.residents { border-color: var(--accent); }
+        .menu-card.residents h3 { color: var(--accent); }
+
+        .menu-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .menu-card p {
+            font-size: 0.85rem;
+            color: #64748B;
+        }
+
+        /* Bottoni e Navigazione Interna */
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover { text-decoration: underline; }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -102,11 +173,8 @@
             font-weight: 600;
         }
 
-        tr:hover {
-            background-color: #F8FAFC;
-        }
+        tr:hover { background-color: #F8FAFC; }
 
-        /* Riga rossa in caso di uscita dimenticata */
         tr.alert-row {
             background-color: #FEF2F2 !important;
             border-left: 4px solid var(--danger);
@@ -120,21 +188,8 @@
         }
         .badge-danger { background: #FEE2E2; color: #991B1B; }
         .badge-success { background: #D1E7DD; color: #0F5132; }
-        .badge-warning { background: #FEF3C7; color: #92400E; }
 
-        .refresh-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            float: right;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-        }
-        .refresh-btn:hover { opacity: 0.9; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -146,23 +201,50 @@
 
     <div class="main-container">
         
-        <button class="refresh-btn" onclick="caricaTuttiDati()">🔄 Aggiorna Dati</button>
-        <div style="clear: both;"></div>
-
-        <!-- Sezione Ospiti Attivi -->
-        <div class="card">
-            <h2 class="section-title" style="color: var(--guest-color);">👥 Registro Ospiti in Struttura</h2>
-            <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 15px;">Gli elementi evidenziati in rosso indicano ospiti senza orario di uscita registrato (richiede verifica telefonica).</p>
-            <div id="ospitiTableContainer">
-                <p style="font-size: 0.85rem; color: #64748B;">Caricamento ospiti...</p>
+        <!-- VISTA HOME: SCELTA SEZIONE -->
+        <div id="homeView">
+            <div class="card" style="text-align: center; padding: 30px;">
+                <h2 style="color: var(--primary); margin-bottom: 8px;">Benvenuta, Direttrice</h2>
+                <p style="color: #64748B; font-size: 0.9rem;">Seleziona la sezione che desideri consultare:</p>
+                
+                <div class="home-menu">
+                    <div class="menu-card guests" onclick="mostraSezione('guestsSection')">
+                        <h3>👥 Registro Ospiti</h3>
+                        <p>Visualizza l'elenco completo degli ospiti in struttura, controlla documenti e orari di uscita.</p>
+                    </div>
+                    <div class="menu-card residents" onclick="mostraSezione('residentsSection')">
+                        <h3>🚪 Residenti</h3>
+                        <p>Monitora presenze, assenze, rientri previsti e ricerca rapida per numero di stanza.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Sezione Assenze Studenti -->
-        <div class="card">
-            <h2 class="section-title" style="color: var(--accent);">🚪 Monitoraggio Assenze / Rientri Residenti</h2>
-            <div id="assenzeTableContainer">
-                <p style="font-size: 0.85rem; color: #64748B;">Caricamento assenze...</p>
+        <!-- VISTA REGISTRO OSPITI -->
+        <div id="guestsSection" class="hidden">
+            <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
+            <div class="card">
+                <h2 class="section-title" style="color: var(--guest-color);">👥 Registro Ospiti in Struttura</h2>
+                <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 15px;">Le righe in rosso evidenziano gli ospiti senza orario di uscita registrato (da verificare).</p>
+                
+                <div id="ospitiTableContainer">
+                    <p style="font-size: 0.85rem; color: #64748B;">Caricamento ospiti...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA RESIDENTI (PRESENZE / ASSENZE) -->
+        <div id="residentsSection" class="hidden">
+            <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
+            <div class="card">
+                <h2 class="section-title" style="color: var(--accent);">🚪 Gestione Residenti (Presenze & Assenze)</h2>
+                
+                <!-- Barra di ricerca -->
+                <input type="text" id="searchResidenti" class="search-bar" placeholder="🔍 Cerca per nome studente o numero stanza..." onkeyup="filtraResidenti()">
+
+                <div id="residentiTableContainer">
+                    <p style="font-size: 0.85rem; color: #64748B;">Caricamento dati residenti...</p>
+                </div>
             </div>
         </div>
 
@@ -173,15 +255,25 @@
         const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
         
         let supabaseClient = null;
+        let tuttiResidentiCache = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
-            caricaTuttiDati();
+            caricaOspitiDirezione();
+            caricaResidentiDirezione();
         });
 
-        async function caricaTuttiDati() {
-            await caricaOspitiDirezione();
-            await caricaAssenzeDirezione();
+        function mostraSezione(sezioneId) {
+            document.getElementById('homeView').classList.add('hidden');
+            document.getElementById('guestsSection').classList.add('hidden');
+            document.getElementById('residentsSection').classList.add('hidden');
+            document.getElementById(sezioneId).classList.remove('hidden');
+        }
+
+        function tornaHome() {
+            document.getElementById('guestsSection').classList.add('hidden');
+            document.getElementById('residentsSection').classList.add('hidden');
+            document.getElementById('homeView').classList.remove('hidden');
         }
 
         async function caricaOspitiDirezione() {
@@ -206,12 +298,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Stanza & Residente</th>
-                            <th>Ospite</th>
-                            <th>Documento</th>
-                            <th>Ingresso</th>
-                            <th>Uscita Prevista</th>
-                            <th>Stato / Alert</th>
+                            <th>Nome Studente</th>
+                            <th>N. Camera</th>
+                            <th>Nominativo Ospite</th>
+                            <th>N. Documento</th>
+                            <th>Orario Ingresso</th>
+                            <th>Orario Uscita</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,17 +318,77 @@
                 }
 
                 let dataIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
-                let dataUscita = ospite.orario_uscita_previsto ? new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : 'Non inserito';
+                let dataUscita = ospite.orario_uscita_previsto ? new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : '<span class="badge badge-danger">Mancante (Verificare)</span>';
 
                 html += `
                     <tr class="${senzaUscita ? 'alert-row' : ''}">
-                        <td><strong>St. ${ospite.residente_stanza}</strong><br><small>${ospite.residente_nome}</small></td>
-                        <td><strong>${ospite.nome} ${ospite.cognome}</strong></td>
-                        <td><small>${ospite.tipo_documento}<br>${ospite.numero_documento}</small></td>
+                        <td><strong>${ospite.residente_nome}</strong></td>
+                        <td><strong>St. ${ospite.residente_stanza}</strong></td>
+                        <td>${ospite.nome} ${ospite.cognome}</td>
+                        <td><small>${ospite.tipo_documento}<br><b>${ospite.numero_documento}</b></small></td>
                         <td>${dataIngresso}</td>
                         <td>${dataUscita}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        async function caricaResidentiDirezione() {
+            const container = document.getElementById('residentiTableContainer');
+            
+            const { data, error } = await supabaseClient
+                .from('assenze')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun dato sulle assenze residenti trovato nel database.</p>`;
+                return;
+            }
+
+            tuttiResidentiCache = data || [];
+            mostraTabellaResidenti(tuttiResidentiCache);
+        }
+
+        function mostraTabellaResidenti(data) {
+            const container = document.getElementById('residentiTableContainer');
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna segnalazione presente.</p>`;
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Numero Stanza</th>
+                            <th>Nome Studente</th>
+                            <th>Inizio Assenza</th>
+                            <th>Rientro Previsto</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody id="residentiTbody">
+            `;
+
+            const oraCorrente = new Date();
+
+            data.forEach(item => {
+                let rientro = new Date(item.fine);
+                let inAssenza = rientro > oraCorrente;
+
+                html += `
+                    <tr>
+                        <td><strong>Stanza ${item.stanza}</strong></td>
+                        <td>${item.nome}</td>
+                        <td>${new Date(item.inizio).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                        <td>${rientro.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
                         <td>
-                            ${senzaUscita ? '<span class="badge badge-danger">⚠️ Uscita Mancante</span>' : '<span class="badge badge-success">Regolare</span>'}
+                            ${inAssenza ? '<span class="badge badge-danger">Assente</span>' : '<span class="badge badge-success">Presente / Rientrato</span>'}
                         </td>
                     </tr>
                 `;
@@ -246,49 +398,12 @@
             container.innerHTML = html;
         }
 
-        async function caricaAssenzeDirezione() {
-            const container = document.getElementById('assenzeTableContainer');
-            
-            // Supponendo che la tabella delle assenze si chiami "assenze" (o puoi adattare il nome)
-            const { data, error } = await supabaseClient
-                .from('assenze')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna tabella assenze collegata o dati vuoti.</p>`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna assenza segnalata al momento.</p>`;
-                return;
-            }
-
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Stanza & Studente</th>
-                            <th>Inizio Assenza</th>
-                            <th>Rientro Previsto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            data.forEach(item => {
-                html += `
-                    <tr>
-                        <td><strong>St. ${item.stanza}</strong> - ${item.nome}</td>
-                        <td>${new Date(item.inizio).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                        <td>${new Date(item.fine).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                    </tr>
-                `;
-            });
-
-            html += `</tbody></table>`;
-            container.innerHTML = html;
+        function filtraResidenti() {
+            const query = document.getElementById('searchResidenti').value.toLowerCase();
+            const filtrate = tuttiResidentiCache.filter(item => 
+                item.nome.toLowerCase().includes(query) || item.stanza.toLowerCase().includes(query)
+            );
+            mostraTabellaResidenti(filtrate);
         }
     </script>
 </body>
