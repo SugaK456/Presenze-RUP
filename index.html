@@ -1,319 +1,377 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RUP - Presenze</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RUP - Presenze</title>
 
-  <!-- PWA per Android -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#22334C">
-  <link rel="icon" type="image/jpeg" href="icona-192.jpg">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#22334C">
+    <link rel="icon" type="image/jpeg" href="icona-192.jpg">
 
-  <!-- PWA per iPhone -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="RUP Presenze">
-  <link rel="apple-touch-icon" href="icona-192.jpg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="RUP Presenze">
+    <link rel="apple-touch-icon" href="icona-192.jpg">
 
-  <style>
-    :root {
-      --primary: #22334C;       /* Blu ardesia RUP */
-      --accent: #EA5B39;        /* Terracotta Preziosina */
-      --bg: #F4F6F9;
-      --card: #FFFFFF;
-      --text: #22334C;
-      --green: #2E7D32;
-      --red: #C62828;
-    }
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
-    
-    .header {
-      background: var(--primary);
-      color: white;
-      text-align: center;
-      padding: 24px 16px 20px;
-      border-bottom: 3.5px solid var(--accent);
-    }
-    .header h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.5px; }
-    .header p { margin: 4px 0 0; font-size: 0.8rem; opacity: 0.85; }
+    <style>
+        :root {
+            --primary: #22334C;
+            --accent: #EA5B39;
+            --bg: #F4F6F9;
+            --card: #FFFFFF;
+            --text: #22334C;
+            --green: #2E7D32;
+            --red: #C62828;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+        .header {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 24px 16px 20px;
+            border-bottom: 3.5px solid var(--accent);
+        }
+        .header h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.5px; }
+        .header p { margin: 4px 0 0; font-size: 0.8rem; opacity: 0.85; }
+        .container { flex: 1; padding: 20px 16px; max-width: 420px; margin: 0 auto; width: 100%; }
+        .card { background: var(--card); border-radius: 12px; padding: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); margin-bottom: 16px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #444; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid #DCE2E6;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #FAFAFA;
+            box-sizing: border-box;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: #FFF; }
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(34, 51, 76, 0.2);
+            transition: opacity 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .user-badge {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #EBF1F6;
+            padding: 12px 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+        .user-room { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
+        .user-name { font-size: 0.9rem; color: #555; margin-top: 2px; }
+        .btn-change { font-size: 0.75rem; color: #777; background: none; border: none; cursor: pointer; text-decoration: underline; }
+        .feedback { text-align: center; margin-top: 15px; font-weight: 600; font-size: 0.9rem; display: none; }
 
-    .container { flex: 1; padding: 20px 16px; max-width: 420px; margin: 0 auto; width: 100%; }
-    .card { background: var(--card); border-radius: 12px; padding: 22px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); margin-bottom: 16px; }
-    
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: #444; }
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid #DCE2E6;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background: #FAFAFA;
-      box-sizing: border-box;
-    }
-    input:focus { outline: none; border-color: var(--primary); background: #FFF; }
-
-    .btn-submit {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(34, 51, 76, 0.2);
-      transition: opacity 0.2s;
-    }
-    .btn-submit:active { transform: scale(0.98); }
-
-    .user-badge {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #EBF1F6;
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      border-left: 4px solid var(--accent);
-    }
-    .user-room { font-size: 1.1rem; font-weight: bold; color: var(--primary); }
-    .user-name { font-size: 0.9rem; color: #555; margin-top: 2px; }
-    .btn-change { font-size: 0.75rem; color: #777; background: none; border: none; cursor: pointer; text-decoration: underline; }
-
-    .feedback { text-align: center; margin-top: 15px; font-weight: 600; font-size: 0.9rem; display: none; }
-
-    /* Blocco elenco assenze */
-    .section-title { font-size: 0.95rem; font-weight: bold; color: var(--primary); margin: 0 0 12px; }
-    .absence-item {
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .absence-dates { font-size: 0.8rem; color: #333; line-height: 1.4; }
-    .absence-dates strong { color: var(--primary); }
-    .btn-delete {
-      background: #FFEBEE;
-      color: var(--red);
-      border: 1px solid #FFCDD2;
-      border-radius: 6px;
-      padding: 6px 10px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .btn-delete:active { transform: scale(0.96); }
-  </style>
+        .section-title { font-size: 0.95rem; font-weight: bold; color: var(--primary); margin: 0 0 12px; }
+        .absence-item {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .absence-dates { font-size: 0.8rem; color: #333; line-height: 1.4; }
+        .absence-dates strong { color: var(--primary); }
+        .btn-delete {
+            background: #FFEBEE;
+            color: var(--red);
+            border: 1px solid #FFCDD2;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-delete:active { transform: scale(0.96); }
+    </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>RESIDENZA UNIVERSITARIA PREZIOSINA</h1>
-    <p>Comunicazione Assenze</p>
-  </div>
-
-  <div class="container">
-    <div class="card">
-      
-      <!-- 1. SEZIONE ACCESSO -->
-      <div id="loginSection">
-        <h3 style="margin-top:0; font-size:1.1rem; color:var(--primary);">Accesso Residente</h3>
-        <p style="font-size:0.85rem; color:#666; margin-bottom:18px;">Inserisci camera e nominativo per memorizzare l'accesso sul telefono.</p>
-        
-        <div class="form-group">
-          <label>Numero Stanza</label>
-          <input type="text" id="loginStanza" placeholder="Es. 104" required>
-        </div>
-        <div class="form-group">
-          <label>Nome</label>
-          <input type="text" id="loginNome" placeholder="Es. Mario" required>
-        </div>
-        <div class="form-group">
-          <label>Cognome</label>
-          <input type="text" id="loginCognome" placeholder="Es. Rossi" required>
-        </div>
-        
-        <button class="btn-submit" onclick="eseguiLogin()">Accedi</button>
-        <div class="feedback" id="loginFeedback"></div>
-      </div>
-
-      <!-- 2. SEZIONE INVIO ASSENZA -->
-      <div id="absenceSection" style="display:none;">
-        <div class="user-badge">
-          <div>
-            <div class="user-room" id="displayStanza">Stanza 104</div>
-            <div class="user-name" id="displayNome">Mario Rossi</div>
-          </div>
-          <button class="btn-change" onclick="cambiaUtente()">Esci</button>
-        </div>
-
-        <form id="absenceForm" onsubmit="inviaAssenza(event)">
-          <div class="form-group">
-            <label>Inizio Assenza (Uscita)</label>
-            <input type="datetime-local" id="dataInizio" required>
-          </div>
-          <div class="form-group">
-            <label>Fine Assenza (Rientro previsto)</label>
-            <input type="datetime-local" id="dataFine" required>
-          </div>
-          <button type="submit" class="btn-submit" id="btnInvia">Registra Assenza</button>
-        </form>
-        <div class="feedback" id="formFeedback"></div>
-      </div>
-
+    <div class="header">
+        <h1>RESIDENZA UNIVERSITARIA PREZIOSINA</h1>
+        <p>Comunicazione Assenze</p>
     </div>
 
-    <!-- 3. SEZIONE VISUALIZZAZIONE / ELIMINAZIONE ASSENZE -->
-    <div class="card" id="listCard" style="display:none;">
-      <h4 class="section-title">Le tue assenze programmate</h4>
-      <div id="listaAssenze">Caricamento in corso...</div>
-    </div>
-  </div>
+    <div class="container">
+        <div class="card">
+            <div id="loginSection">
+                <h3 style="margin-top:0; font-size:1.1rem; color:var(--primary);">Accesso Residente</h3>
+                <p style="font-size:0.85rem; color:#666; margin-bottom:18px;">Inserisci camera e nominativo per memorizzare l'accesso sul telefono.</p>
+                <div class="form-group">
+                    <label>Numero Stanza</label>
+                    <input type="text" id="loginStanza" placeholder="Es. 104" required>
+                </div>
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="loginNome" placeholder="Es. Mario" required>
+                </div>
+                <div class="form-group">
+                    <label>Cognome</label>
+                    <input type="text" id="loginCognome" placeholder="Es. Rossi" required>
+                </div>
+                <button class="btn-submit" onclick="eseguiLogin()">Accedi</button>
+                <div class="feedback" id="loginFeedback"></div>
+            </div>
 
-  <script>
-    // Incolla l'URL della Web App di Google Apps Script (deve terminare con /exec)
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz615wsVQxV-_kAx3c_sa5qeMg1-5hvliV9sMm66YmJ8Wmd4RmffvkblQvJmWZvVH7BfA/exec";
+            <div id="absenceSection" style="display:none;">
+                <div class="user-badge">
+                    <div>
+                        <div class="user-room" id="displayStanza">Stanza 104</div>
+                        <div class="user-name" id="displayNome">Mario Rossi</div>
+                    </div>
+                    <button class="btn-change" onclick="cambiaUtente()">Esci</button>
+                </div>
+
+                <form id="absenceForm" onsubmit="inviaAssenza(event)">
+                    <div class="form-group">
+                        <label>Inizio Assenza (Uscita)</label>
+                        <input type="datetime-local" id="dataInizio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fine Assenza (Rientro previsto)</label>
+                        <input type="datetime-local" id="dataFine" required>
+                    </div>
+                    <button type="submit" class="btn-submit" id="btnInvia">Registra Assenza</button>
+                </form>
+                <div class="feedback" id="formFeedback"></div>
+            </div>
+        </div>
+
+        <div class="card" id="listCard" style="display:none;">
+            <h4 class="section-title">Le tue assenze programmate</h4>
+            <div id="listaAssenze">Caricamento in corso...</div>
+        </div>
+    </div>
+
+    <script>
+    // =================================================================
+    //  CONFIGURAZIONE SUPABASE
+    //  L'URL è già quello del tuo progetto. Incolla SOLO la chiave anon:
+    //  Supabase -> ingranaggio (Settings) -> API Keys -> chiave "anon public"
+    //  (quella lunga che inizia con eyJ...)
+    // =================================================================
+    const SUPABASE_URL = "https://umemmtyiklwaiifwdgng.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZW1tdHlpa2x3YWlpZndkZ25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA1MDAsImV4cCI6MjEwNjMzNjUwMH0.a5nKSWBVfj-d7JVnadFeXsqoRKgYvcRDNJx62LspKQs";
+
+    const SB_HEADERS = {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+    };
+
+    let assenzeCorrenti = [];
 
     window.onload = function() {
-      const stanza = localStorage.getItem("rup_stanza");
-      const nome = localStorage.getItem("rup_nome");
-      const cognome = localStorage.getItem("rup_cognome");
-      if (stanza && nome && cognome) {
-        mostraSchermataAssenze(stanza, nome, cognome);
-      }
+        const stanza = localStorage.getItem("rup_stanza");
+        const nome = localStorage.getItem("rup_nome");
+        const cognome = localStorage.getItem("rup_cognome");
+        if (stanza && nome && cognome) {
+            mostraSchermataAssenze(stanza, nome, cognome);
+        }
     };
 
     function eseguiLogin() {
-      const stanza = document.getElementById("loginStanza").value.trim();
-      const nome = document.getElementById("loginNome").value.trim();
-      const cognome = document.getElementById("loginCognome").value.trim();
-      const fb = document.getElementById("loginFeedback");
+        const stanza = document.getElementById("loginStanza").value.trim();
+        const nome = document.getElementById("loginNome").value.trim();
+        const cognome = document.getElementById("loginCognome").value.trim();
+        const fb = document.getElementById("loginFeedback");
 
-      if (!stanza || !nome || !cognome) {
-        fb.style.display = "block";
-        fb.style.color = "var(--red)";
-        fb.innerText = "Compila Stanza, Nome e Cognome.";
-        return;
-      }
+        if (!stanza || !nome || !cognome) {
+            fb.style.display = "block";
+            fb.style.color = "var(--red)";
+            fb.innerText = "Compila Stanza, Nome e Cognome.";
+            return;
+        }
 
-      localStorage.setItem("rup_stanza", stanza);
-      localStorage.setItem("rup_nome", nome);
-      localStorage.setItem("rup_cognome", cognome);
-      mostraSchermataAssenze(stanza, nome, cognome);
+        localStorage.setItem("rup_stanza", stanza);
+        localStorage.setItem("rup_nome", nome);
+        localStorage.setItem("rup_cognome", cognome);
+        mostraSchermataAssenze(stanza, nome, cognome);
     }
 
     function mostraSchermataAssenze(stanza, nome, cognome) {
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("absenceSection").style.display = "block";
-      document.getElementById("listCard").style.display = "block";
-      document.getElementById("displayStanza").innerText = "Stanza " + stanza;
-      document.getElementById("displayNome").innerText = nome + " " + cognome;
-      caricaAssenzePersonali();
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("absenceSection").style.display = "block";
+        document.getElementById("listCard").style.display = "block";
+        document.getElementById("displayStanza").innerText = "Stanza " + stanza;
+        document.getElementById("displayNome").innerText = nome + " " + cognome;
+        caricaAssenzePersonali();
     }
 
     function cambiaUtente() {
-      if (confirm("Vuoi disconnettere questo profilo dal telefono?")) {
-        localStorage.removeItem("rup_stanza");
-        localStorage.removeItem("rup_nome");
-        localStorage.removeItem("rup_cognome");
-        location.reload();
-      }
+        if (confirm("Vuoi disconnettere questo profilo dal telefono?")) {
+            localStorage.removeItem(chiaveCache());
+            localStorage.removeItem("rup_stanza");
+            localStorage.removeItem("rup_nome");
+            localStorage.removeItem("rup_cognome");
+            location.reload();
+        }
+    }
+
+    function chiaveCache() {
+        return "rup_cache_" +
+            (localStorage.getItem("rup_stanza") || "") + "_" +
+            (localStorage.getItem("rup_nome") || "") + "_" +
+            (localStorage.getItem("rup_cognome") || "");
+    }
+
+    function renderAssenze(data) {
+        const box = document.getElementById("listaAssenze");
+        assenzeCorrenti = data || [];
+
+        if (!assenzeCorrenti.length) {
+            box.innerHTML = "<p style='font-size:0.85rem; color:#888; margin:0;'>Nessuna assenza programmata.</p>";
+            return;
+        }
+
+        box.innerHTML = assenzeCorrenti.map(item => {
+            const dInizio = new Date(item.inizio).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+            const dFine = new Date(item.fine).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+            return `
+                <div class="absence-item">
+                    <div class="absence-dates">
+                        <div>Da: <strong>${dInizio}</strong></div>
+                        <div>A: <strong>${dFine}</strong></div>
+                    </div>
+                    <button class="btn-delete" onclick="eliminaAssenza('${item.id}')">Cancella</button>
+                </div>
+            `;
+        }).join("");
     }
 
     async function caricaAssenzePersonali() {
-      const box = document.getElementById("listaAssenze");
-      const nome = encodeURIComponent(localStorage.getItem("rup_nome"));
-      const cognome = encodeURIComponent(localStorage.getItem("rup_cognome"));
-      const stanza = encodeURIComponent(localStorage.getItem("rup_stanza"));
+        const box = document.getElementById("listaAssenze");
 
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=getMieAssenze&nome=${nome}&cognome=${cognome}&stanza=${stanza}`);
-        const data = await res.json();
+        // 1) Mostra SUBITO l'ultima lista salvata sul telefono (0 ms)
+        try {
+            const cache = localStorage.getItem(chiaveCache());
+            if (cache) renderAssenze(JSON.parse(cache));
+        } catch (e) {}
 
-        if (!data || data.length === 0) {
-          box.innerHTML = "<p style='font-size:0.85rem; color:#888; margin:0;'>Nessuna assenza programmata.</p>";
-          return;
+        // 2) Aggiorna in sottofondo dal database (funzione get_mie_assenze)
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_mie_assenze`, {
+                method: "POST",
+                headers: SB_HEADERS,
+                body: JSON.stringify({
+                    p_stanza: localStorage.getItem("rup_stanza"),
+                    p_nome: localStorage.getItem("rup_nome"),
+                    p_cognome: localStorage.getItem("rup_cognome")
+                })
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+            renderAssenze(data);
+            localStorage.setItem(chiaveCache(), JSON.stringify(data));
+        } catch (e) {
+            if (!assenzeCorrenti.length) {
+                box.innerHTML = "<p style='font-size:0.85rem; color:#888; margin:0;'>Impossibile caricare le assenze.</p>";
+            }
         }
-
-        box.innerHTML = data.map(item => {
-          const dInizio = new Date(item.inizio).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-          const dFine = new Date(item.fine).toLocaleString("it-IT", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-
-          return `
-            <div class="absence-item">
-              <div class="absence-dates">
-                <div>Da: <strong>${dInizio}</strong></div>
-                <div>A: <strong>${dFine}</strong></div>
-              </div>
-              <button class="btn-delete" onclick="eliminaAssenza('${item.id}')">Cancella</button>
-            </div>
-          `;
-        }).join("");
-      } catch (e) {
-        box.innerHTML = "<p style='font-size:0.85rem; color:#888; margin:0;'>Impossibile caricare le assenze.</p>";
-      }
     }
 
     async function inviaAssenza(e) {
-      e.preventDefault();
-      const btn = document.getElementById("btnInvia");
-      const fb = document.getElementById("formFeedback");
+        e.preventDefault();
+        const btn = document.getElementById("btnInvia");
+        const fb = document.getElementById("formFeedback");
 
-      const payload = {
-        action: "segnalaAssenza",
-        stanza: localStorage.getItem("rup_stanza"),
-        nome: localStorage.getItem("rup_nome"),
-        cognome: localStorage.getItem("rup_cognome"),
-        inizio: document.getElementById("dataInizio").value,
-        fine: document.getElementById("dataFine").value
-      };
+        const inizioVal = document.getElementById("dataInizio").value;
+        const fineVal = document.getElementById("dataFine").value;
 
-      btn.disabled = true;
-      btn.innerText = "Invio in corso...";
-      fb.style.display = "none";
+        if (new Date(fineVal) <= new Date(inizioVal)) {
+            fb.style.display = "block";
+            fb.style.color = "var(--red)";
+            fb.innerText = "La fine deve essere successiva all'inizio.";
+            return;
+        }
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
+        btn.disabled = true;
+        btn.innerText = "Invio in corso...";
+        fb.style.display = "none";
 
-        fb.style.display = "block";
-        fb.style.color = "var(--green)";
-        fb.innerText = "✓ Assenza registrata correttamente!";
-        document.getElementById("absenceForm").reset();
-        caricaAssenzePersonali();
-      } catch (err) {
-        fb.style.display = "block";
-        fb.style.color = "var(--red)";
-        fb.innerText = "Errore durante l'invio. Riprova.";
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "Registra Assenza";
-      }
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/segnala_assenza`, {
+                method: "POST",
+                headers: SB_HEADERS,
+                body: JSON.stringify({
+                    p_stanza: localStorage.getItem("rup_stanza"),
+                    p_nome: localStorage.getItem("rup_nome"),
+                    p_cognome: localStorage.getItem("rup_cognome"),
+                    p_inizio: new Date(inizioVal).toISOString(),
+                    p_fine: new Date(fineVal).toISOString()
+                })
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+
+            const inserita = await res.json();
+            const riga = Array.isArray(inserita) ? inserita[0] : inserita;
+
+            assenzeCorrenti.push({ id: riga.id, inizio: riga.inizio, fine: riga.fine });
+            assenzeCorrenti.sort((a, b) => new Date(a.inizio) - new Date(b.inizio));
+            renderAssenze(assenzeCorrenti);
+            localStorage.setItem(chiaveCache(), JSON.stringify(assenzeCorrenti));
+
+            fb.style.display = "block";
+            fb.style.color = "var(--green)";
+            fb.innerText = "\u2713 Assenza registrata correttamente!";
+            document.getElementById("absenceForm").reset();
+        } catch (err) {
+            fb.style.display = "block";
+            fb.style.color = "var(--red)";
+            fb.innerText = "Errore durante l'invio. Riprova.";
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Registra Assenza";
+        }
     }
 
     async function eliminaAssenza(id) {
-      if (!confirm("Vuoi cancellare questa assenza?")) return;
+        if (!confirm("Vuoi cancellare questa assenza?")) return;
 
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "eliminaAssenza", id: id })
-        });
-        caricaAssenzePersonali();
-      } catch (err) {
-        alert("Errore durante la cancellazione.");
-      }
+        // Aggiornamento ottimistico: togli subito la riga dalla schermata
+        const backup = assenzeCorrenti.slice();
+        const nuova = assenzeCorrenti.filter(a => String(a.id) !== String(id));
+        renderAssenze(nuova);
+        localStorage.setItem(chiaveCache(), JSON.stringify(nuova));
+
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/elimina_assenza`, {
+                method: "POST",
+                headers: SB_HEADERS,
+                body: JSON.stringify({
+                    p_id: id,
+                    p_stanza: localStorage.getItem("rup_stanza"),
+                    p_nome: localStorage.getItem("rup_nome"),
+                    p_cognome: localStorage.getItem("rup_cognome")
+                })
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+        } catch (err) {
+            renderAssenze(backup);
+            localStorage.setItem(chiaveCache(), JSON.stringify(backup));
+            alert("Errore durante la cancellazione.");
+        }
     }
-  </script>
+    </script>
+
 </body>
 </html>
