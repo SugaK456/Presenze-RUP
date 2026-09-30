@@ -123,7 +123,7 @@
             padding: 12px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 0.95kr;
+            font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s;
             background-color: #FFFFFF;
@@ -213,7 +213,6 @@
         .badge-alert { background: #FEE2E2; color: #991B1B; }
 
         .hidden { display: none; }
-        .config-box { background: #FFF; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed var(--accent); }
     </style>
 </head>
 <body>
@@ -225,23 +224,8 @@
 
     <div class="main-container">
         
-        <!-- Configurazione Supabase (Primo accesso) -->
-        <div id="configSection" class="card hidden">
-            <h3 class="section-title">Configurazione Iniziale Supabase</h3>
-            <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 12px;">Inserisci le credenziali del tuo database Supabase per connettere l'app.</p>
-            <div class="form-group">
-                <label>Supabase Project URL</label>
-                <input type="text" id="supaUrl" placeholder="https://xxx.supabase.co">
-            </div>
-            <div class="form-group">
-                <label>Supabase Anon Key</label>
-                <input type="text" id="supaKey" placeholder="eyJhbGciOi...">
-            </div>
-            <button class="btn-primary" onclick="salvaConfig()">Salva e Connetti</button>
-        </div>
-
         <!-- Sezione Login Residente -->
-        <div id="loginSection" class="card hidden">
+        <div id="loginSection" class="card">
             <h3 class="section-title" style="margin-bottom: 16px;">Accesso Residente</h3>
             <div class="form-group">
                 <label for="loginNome">Nome e Cognome</label>
@@ -319,35 +303,16 @@
     </div>
 
     <script>
+        // Credenziali Supabase incorporate direttamente
+        const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
+        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
+        
         let supabaseClient = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            const url = localStorage.getItem('supa_url');
-            const key = localStorage.getItem('supa_key');
-
-            if (!url || !key) {
-                document.getElementById('configSection').classList.remove('hidden');
-            } else {
-                initSupabase(url, key);
-                checkAuth();
-            }
+            supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
+            checkAuth();
         });
-
-        function salvaConfig() {
-            const url = document.getElementById('supaUrl').value.trim();
-            const key = document.getElementById('supaKey').value.trim();
-            if (!url || !key) {
-                alert('Inserisci entrambi i parametri di Supabase.');
-                return;
-            }
-            localStorage.setItem('supa_url', url);
-            localStorage.setItem('supa_key', key);
-            location.reload();
-        }
-
-        function initSupabase(url, key) {
-            supabaseClient = supabase.createClient(url, key);
-        }
 
         function checkAuth() {
             const nome = localStorage.getItem('prez_nome');
@@ -392,7 +357,6 @@
                     await ndef.scan();
                     alert("Avvicina la Carta d'Identità NFC al retro del dispositivo...");
                     ndef.onreading = event => {
-                        // Simulazione estrazione dati carta d'identità
                         document.getElementById('tipoDoc').value = "Carta d'Identità";
                         document.getElementById('nomeOspite').value = "Mario";
                         document.getElementById('cognomeOspite').value = "Rossi";
@@ -403,7 +367,6 @@
                     alert("Errore lettura NFC: " + error);
                 }
             } else {
-                // Fallback simulato se il browser/dispositivo non supporta Web NFC
                 alert("Lettura NFC simulata (Dispositivo non supporta Web NFC diretto). Compilazione automatica dati test.");
                 document.getElementById('tipoDoc').value = "Carta d'Identità";
                 document.getElementById('nomeOspite').value = "Luca";
@@ -413,7 +376,6 @@
         }
 
         function scansionaPassaporto() {
-            // Apertura fotocamera o caricamento immagine passaporto per OCR
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
@@ -443,7 +405,6 @@
                 return;
             }
 
-            // Inserimento dati su Supabase
             const { data, error } = await supabaseClient
                 .from('ospiti_preziosina')
                 .insert([
@@ -494,10 +455,9 @@
             const oraCorrente = new Date();
 
             data.forEach(ospite => {
-                // Controllo se manca l'orario di uscita ed è passato il giorno o la giornata è avanzata (segnalazione in rosso)
                 let senzaUscita = !ospite.orario_uscita_previsto;
                 if (!senzaUscita && new Date(ospite.orario_uscita_previsto) < oraCorrente) {
-                    senzaUscita = true; // Se l'orario previsto è già passato senza conferma di uscita
+                    senzaUscita = true;
                 }
 
                 html += `
