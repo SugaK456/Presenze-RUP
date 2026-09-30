@@ -163,7 +163,6 @@
             border-color: var(--accent);
         }
 
-        /* Bottoni Navigazione */
         .back-btn {
             background: none;
             border: none;
@@ -258,7 +257,6 @@
             <div class="card">
                 <h2 class="section-title" style="color: var(--accent);">🚪 Gestione Residenti (Presenze & Assenze)</h2>
                 
-                <!-- Filtri e Ricerca -->
                 <div class="controls-row">
                     <input type="text" id="searchResidenti" class="search-bar" placeholder="🔍 Cerca per nome studente o numero stanza..." onkeyup="applicaFiltriResidenti()">
                     <div class="filter-buttons">
@@ -281,13 +279,13 @@
         const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
         
         let supabaseClient = null;
-        let tuttiResidentiCache = [];
-        let filtroCorrente = 'tutti'; // 'tutti', 'presenti', 'assenti'
+        let datiUnificatiCache = [];
+        let filtroCorrente = 'tutti';
 
         document.addEventListener('DOMContentLoaded', () => {
             supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
             caricaOspitiDirezione();
-            caricaResidentiDirezione();
+            caricaResidentiEAssenze();
         });
 
         function mostraSezione(sezioneId) {
@@ -362,19 +360,54 @@
             container.innerHTML = html;
         }
 
-        async function caricaResidentiDirezione() {
+        async function caricaResidentiEAssenze() {
             const container = document.getElementById('residentiTableContainer');
-            const { data, error } = await supabaseClient
-                .from('assenze')
-                .select('*')
-                .order('created_at', { ascending: false });
 
-            if (error) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna segnalazione presente nel database.</p>`;
+            // 1. Carica tutti i residenti dalla tabella 'residenti'
+            const resResidenti = await supabaseClient.from('residenti').select('*');
+            if (resResidenti.error) {
+                container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento residenti: ${resResidenti.error.message}</p>`;
                 return;
             }
 
-            tuttiResidentiCache = data || [];
+            const residenti = resResidenti.data || [];
+            if (residenti.length === 0) {
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun residente trovato.</p>`;
+                return;
+            }
+
+            // 2. Carica tutte le assenze dalla tabella 'assenze'
+            const resAssenze = await supabaseClient.from('assenze').select('*');
+            const assenze = resAssenze.data || [];
+
+            const oraCorrente = new Date();
+
+            // 3. Unisce i dati abbinando nome + cognome e verificando le assenze attive
+            datiUnificatiCache = residenti.map(res => {
+                const nomeCompleto = `${res.nome || ''} ${res.cognome || ''}`.trim();
+                
+                // Cerca se esiste un'assenza attiva per questa stanza o per questo studente
+                const assenzaAttiva = assenze.find(a => {
+                    let inizio = new Date(a.inizio);
+                    let fine = new Date(a.fine);
+                    let corrispondeStanza = String(a.stanza).trim() === String(res.stanza).trim();
+                    let corrispondeNome = a.nome && a.nome.toLowerCase().includes(res.nome.toLowerCase());
+                    
+                    return (corrispondeStanza || corrispondeNome) && oraCorrente >= inizio && oraCorrente <= fine;
+                });
+
+                return {
+                    stanza: res.stanza,
+                    nome: nomeCompleto,
+                    isAssente: !!assenzaAttiva,
+                    inizioAssenza: assenzaAttiva ? assenzaAttiva.inizio : null,
+                    fineAssenza: assenzaAttiva ? assenzaAttiva.fine : null
+                };
+            });
+
+            // Ordina per numero di stanza
+            datiUnificatiCache.sort((a, b) => String(a.stanza).localeCompare(String(b.stanza), undefined, {numeric: true}));
+
             applicaFiltriResidenti();
         }
 
@@ -393,19 +426,13 @@
 
         function applicaFiltriResidenti() {
             const query = document.getElementById('searchResidenti').value.toLowerCase();
-            const oraCorrente = new Date();
 
-            const filtrate = tuttiResidentiCache.filter(item => {
-                let rientro = new Date(item.fine);
-                let inAssenza = rientro > oraCorrente;
-
-                // Filtro per testo (nome o stanza)
+            const filtrate = datiUnificatiCache.filter(item => {
                 const matchTesto = item.nome.toLowerCase().includes(query) || String(item.stanza).toLowerCase().includes(query);
 
-                // Filtro per stato (tutti, presenti, assenti)
                 let matchStato = true;
-                if (filtroCorrente === 'presenti') matchStato = !inAssenza;
-                if (filtroCorrente === 'assenti') matchStato = inAssenza;
+                if (filtroCorrente === 'presenti') matchStato = !item.isAssente;
+                if (filtroCorrente === 'assenti') matchStato = item.isAssente;
 
                 return matchTesto && matchStato;
             });
@@ -434,16 +461,14 @@
                     <tbody>
             `;
 
-            const oraCorrente = new Date();
-
             data.forEach(item => {
-                let inizio = new Date(item.inizio);
-                let rientro = new Date(item.fine);
-                let inAssenza = rientro > oraCorrente;
-
-                let periodoAssenza = inAssenza 
-                    ? `Dal <b>${inizio.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</b> al <b>${rientro.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</b>`
-                    : `<span style="color: #94A3B8;">Nessuna assenza attiva</span>`;
+                let periodoAssenza = `<span style="color: #94A3B8;">Nessuna assenza attiva</span>`;
+                
+                if (item.isAssente) {
+                    let inizio = new Date(item.inizioAssenza).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+                    let fine = new Date(item.fineAssenza).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+                    periodoAssenza = `Dal <b>${inizio}</b> al <b>${fine}</b>`;
+                }
 
                 html += `
                     <tr>
@@ -451,7 +476,7 @@
                         <td>${item.nome}</td>
                         <td>${periodoAssenza}</td>
                         <td>
-                            ${inAssenza ? '<span class="badge badge-danger">Assente</span>' : '<span class="badge badge-success">Presente</span>'}
+                            ${item.isAssente ? '<span class="badge badge-danger">Assente</span>' : '<span class="badge badge-success">Presente</span>'}
                         </td>
                     </tr>
                 `;
