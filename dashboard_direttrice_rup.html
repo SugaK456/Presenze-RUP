@@ -240,7 +240,7 @@
 
         <!-- VISTA REGISTRO OSPITI -->
         <div id="guestsSection" class="hidden">
-            <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
+            <button class="back-btn" onclick="tornaHome()">⬅️️ Torna al Menu Principale</button>
             <div class="card">
                 <h2 class="section-title" style="color: var(--guest-color);">👥 Registro Ospiti in Struttura</h2>
                 <p style="font-size: 0.85rem; color: #64748B; margin-bottom: 15px;">Le righe in rosso evidenziano gli ospiti senza orario di uscita registrato (da verificare).</p>
@@ -363,7 +363,7 @@
         async function caricaResidentiEAssenze() {
             const container = document.getElementById('residentiTableContainer');
 
-            // 1. Carica tutti i residenti dalla tabella 'residenti'
+            // 1. Caricamento tabella 'residenti'
             const resResidenti = await supabaseClient.from('residenti').select('*');
             if (resResidenti.error) {
                 container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento residenti: ${resResidenti.error.message}</p>`;
@@ -376,17 +376,16 @@
                 return;
             }
 
-            // 2. Carica tutte le assenze dalla tabella 'assenze'
+            // 2. Caricamento tabella 'assenze'
             const resAssenze = await supabaseClient.from('assenze').select('*');
             const assenze = resAssenze.data || [];
 
             const oraCorrente = new Date();
 
-            // 3. Unisce i dati abbinando nome + cognome e verificando le assenze attive
+            // 3. Unione dati
             datiUnificatiCache = residenti.map(res => {
                 const nomeCompleto = `${res.nome || ''} ${res.cognome || ''}`.trim();
                 
-                // Cerca se esiste un'assenza attiva per questa stanza o per questo studente
                 const assenzaAttiva = assenze.find(a => {
                     let inizio = new Date(a.inizio);
                     let fine = new Date(a.fine);
@@ -405,7 +404,7 @@
                 };
             });
 
-            // Ordina per numero di stanza
+            // Ordinamento per numero stanza
             datiUnificatiCache.sort((a, b) => String(a.stanza).localeCompare(String(b.stanza), undefined, {numeric: true}));
 
             applicaFiltriResidenti();
