@@ -58,7 +58,7 @@
         }
 
         .main-container {
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             margin: 30px auto;
             padding: 0 15px;
@@ -84,7 +84,7 @@
             gap: 8px;
         }
 
-        /* Home Sezione Scelta */
+        /* Home Menu */
         .home-menu {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -118,17 +118,52 @@
         .menu-card.residents { border-color: var(--accent); }
         .menu-card.residents h3 { color: var(--accent); }
 
-        .menu-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+        .menu-card h3 { font-size: 1.2rem; margin-bottom: 10px; }
+        .menu-card p { font-size: 0.85rem; color: #64748B; }
+
+        /* Controlli Filtri Residenti */
+        .controls-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
-        .menu-card p {
+        .search-bar {
+            flex: 1;
+            min-width: 220px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search-bar:focus { border-color: var(--accent); }
+
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-filter {
+            padding: 10px 14px;
+            background: #F1F5F9;
+            border: 1px solid var(--border);
+            border-radius: 8px;
             font-size: 0.85rem;
-            color: #64748B;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        /* Bottoni e Navigazione Interna */
+        .btn-filter.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Bottoni Navigazione */
         .back-btn {
             background: none;
             border: none;
@@ -141,19 +176,7 @@
             align-items: center;
             gap: 6px;
         }
-
         .back-btn:hover { text-decoration: underline; }
-
-        .search-bar {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        .search-bar:focus { border-color: var(--accent); }
 
         table {
             width: 100%;
@@ -174,11 +197,7 @@
         }
 
         tr:hover { background-color: #F8FAFC; }
-
-        tr.alert-row {
-            background-color: #FEF2F2 !important;
-            border-left: 4px solid var(--danger);
-        }
+        tr.alert-row { background-color: #FEF2F2 !important; border-left: 4px solid var(--danger); }
 
         .badge {
             padding: 4px 8px;
@@ -201,7 +220,7 @@
 
     <div class="main-container">
         
-        <!-- VISTA HOME: SCELTA SEZIONE -->
+        <!-- VISTA HOME -->
         <div id="homeView">
             <div class="card" style="text-align: center; padding: 30px;">
                 <h2 style="color: var(--primary); margin-bottom: 8px;">Benvenuta, Direttrice</h2>
@@ -214,7 +233,7 @@
                     </div>
                     <div class="menu-card residents" onclick="mostraSezione('residentsSection')">
                         <h3>🚪 Residenti</h3>
-                        <p>Monitora presenze, assenze, rientri previsti e ricerca rapida per numero di stanza.</p>
+                        <p>Monitora presenze, assenze programmate, orari e ricerca rapida per camera.</p>
                     </div>
                 </div>
             </div>
@@ -233,14 +252,21 @@
             </div>
         </div>
 
-        <!-- VISTA RESIDENTI (PRESENZE / ASSENZE) -->
+        <!-- VISTA RESIDENTI (PRESENZE & ASSENZE) -->
         <div id="residentsSection" class="hidden">
             <button class="back-btn" onclick="tornaHome()">⬅️ Torna al Menu Principale</button>
             <div class="card">
                 <h2 class="section-title" style="color: var(--accent);">🚪 Gestione Residenti (Presenze & Assenze)</h2>
                 
-                <!-- Barra di ricerca -->
-                <input type="text" id="searchResidenti" class="search-bar" placeholder="🔍 Cerca per nome studente o numero stanza..." onkeyup="filtraResidenti()">
+                <!-- Filtri e Ricerca -->
+                <div class="controls-row">
+                    <input type="text" id="searchResidenti" class="search-bar" placeholder="🔍 Cerca per nome studente o numero stanza..." onkeyup="applicaFiltriResidenti()">
+                    <div class="filter-buttons">
+                        <button class="btn-filter active" id="btnTutti" onclick="impostaFiltro('tutti')">Tutti</button>
+                        <button class="btn-filter" id="btnPresenti" onclick="impostaFiltro('presenti')">Presenti</button>
+                        <button class="btn-filter" id="btnAssenti" onclick="impostaFiltro('assenti')">Assenti</button>
+                    </div>
+                </div>
 
                 <div id="residentiTableContainer">
                     <p style="font-size: 0.85rem; color: #64748B;">Caricamento dati residenti...</p>
@@ -256,6 +282,7 @@
         
         let supabaseClient = null;
         let tuttiResidentiCache = [];
+        let filtroCorrente = 'tutti'; // 'tutti', 'presenti', 'assenti'
 
         document.addEventListener('DOMContentLoaded', () => {
             supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -278,7 +305,6 @@
 
         async function caricaOspitiDirezione() {
             const container = document.getElementById('ospitiTableContainer');
-            
             const { data, error } = await supabaseClient
                 .from('ospiti_preziosina')
                 .select('*')
@@ -338,26 +364,60 @@
 
         async function caricaResidentiDirezione() {
             const container = document.getElementById('residentiTableContainer');
-            
             const { data, error } = await supabaseClient
                 .from('assenze')
                 .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun dato sulle assenze residenti trovato nel database.</p>`;
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna segnalazione presente nel database.</p>`;
                 return;
             }
 
             tuttiResidentiCache = data || [];
-            mostraTabellaResidenti(tuttiResidentiCache);
+            applicaFiltriResidenti();
+        }
+
+        function impostaFiltro(tipo) {
+            filtroCorrente = tipo;
+            document.getElementById('btnTutti').classList.remove('active');
+            document.getElementById('btnPresenti').classList.remove('active');
+            document.getElementById('btnAssenti').classList.remove('active');
+
+            if (tipo === 'tutti') document.getElementById('btnTutti').classList.add('active');
+            if (tipo === 'presenti') document.getElementById('btnPresenti').classList.add('active');
+            if (tipo === 'assenti') document.getElementById('btnAssenti').classList.add('active');
+
+            applicaFiltriResidenti();
+        }
+
+        function applicaFiltriResidenti() {
+            const query = document.getElementById('searchResidenti').value.toLowerCase();
+            const oraCorrente = new Date();
+
+            const filtrate = tuttiResidentiCache.filter(item => {
+                let rientro = new Date(item.fine);
+                let inAssenza = rientro > oraCorrente;
+
+                // Filtro per testo (nome o stanza)
+                const matchTesto = item.nome.toLowerCase().includes(query) || String(item.stanza).toLowerCase().includes(query);
+
+                // Filtro per stato (tutti, presenti, assenti)
+                let matchStato = true;
+                if (filtroCorrente === 'presenti') matchStato = !inAssenza;
+                if (filtroCorrente === 'assenti') matchStato = inAssenza;
+
+                return matchTesto && matchStato;
+            });
+
+            mostraTabellaResidenti(filtrate);
         }
 
         function mostraTabellaResidenti(data) {
             const container = document.getElementById('residentiTableContainer');
 
             if (!data || data.length === 0) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessuna segnalazione presente.</p>`;
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B; padding: 10px 0;">Nessun residente trovato con i criteri selezionati.</p>`;
                 return;
             }
 
@@ -367,28 +427,31 @@
                         <tr>
                             <th>Numero Stanza</th>
                             <th>Nome Studente</th>
-                            <th>Inizio Assenza</th>
-                            <th>Rientro Previsto</th>
+                            <th>Periodo Assenza</th>
                             <th>Stato</th>
                         </tr>
                     </thead>
-                    <tbody id="residentiTbody">
+                    <tbody>
             `;
 
             const oraCorrente = new Date();
 
             data.forEach(item => {
+                let inizio = new Date(item.inizio);
                 let rientro = new Date(item.fine);
                 let inAssenza = rientro > oraCorrente;
+
+                let periodoAssenza = inAssenza 
+                    ? `Dal <b>${inizio.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</b> al <b>${rientro.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</b>`
+                    : `<span style="color: #94A3B8;">Nessuna assenza attiva</span>`;
 
                 html += `
                     <tr>
                         <td><strong>Stanza ${item.stanza}</strong></td>
                         <td>${item.nome}</td>
-                        <td>${new Date(item.inizio).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                        <td>${rientro.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                        <td>${periodoAssenza}</td>
                         <td>
-                            ${inAssenza ? '<span class="badge badge-danger">Assente</span>' : '<span class="badge badge-success">Presente / Rientrato</span>'}
+                            ${inAssenza ? '<span class="badge badge-danger">Assente</span>' : '<span class="badge badge-success">Presente</span>'}
                         </td>
                     </tr>
                 `;
@@ -396,14 +459,6 @@
 
             html += `</tbody></table>`;
             container.innerHTML = html;
-        }
-
-        function filtraResidenti() {
-            const query = document.getElementById('searchResidenti').value.toLowerCase();
-            const filtrate = tuttiResidentiCache.filter(item => 
-                item.nome.toLowerCase().includes(query) || item.stanza.toLowerCase().includes(query)
-            );
-            mostraTabellaResidenti(filtrate);
         }
     </script>
 </body>
