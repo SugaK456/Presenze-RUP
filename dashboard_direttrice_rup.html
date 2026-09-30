@@ -5,25 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RUP - Pannello Presenze Direzione</title>
 
-  <!-- Collegamento Manifest e Colore Barra -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#22334C">
-
-  <!-- Icona per Android / Chrome -->
   <link rel="icon" type="image/jpeg" href="icona-192.jpg">
-
-  <!-- Icona e Fullscreen per iPhone / Safari -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RUP Direzione">
   <link rel="apple-touch-icon" href="icona-192.jpg">
-
-
   <link rel="icon" type="image/png" href="icona-192.png">
   <style>
     :root {
-      --primary: #22334C;       /* Blu ardesia istituzionale RUP */
-      --accent: #EA5B39;        /* Terracotta Preziosina */
+      --primary: #22334C;
+      --accent: #EA5B39;
       --bg: #F4F6F9;
       --card: #FFFFFF;
       --text: #22334C;
@@ -34,302 +27,91 @@
       --red-bg: #FFEBEE;
       --border: #E2E8F0;
     }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Top Navigation Header */
     header {
-      background: var(--primary);
-      color: #FFFFFF;
-      padding: 18px 24px;
-      border-bottom: 4px solid var(--accent);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
+      background: var(--primary); color: #FFFFFF; padding: 18px 24px;
+      border-bottom: 4px solid var(--accent); display: flex;
+      justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .brand { display: flex; align-items: center; gap: 12px; }
     .brand-logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 8px;
-      background: #FFFFFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      color: var(--primary);
-      font-size: 1.1rem;
-      border: 2px solid var(--accent);
+      width: 42px; height: 42px; border-radius: 8px; background: #FFFFFF;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; color: var(--primary); font-size: 1.1rem; border: 2px solid var(--accent);
     }
-
-    .brand-title h1 {
-      margin: 0;
-      font-size: 1.15rem;
-      letter-spacing: 0.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    .brand-title span {
-      font-size: 0.8rem;
-      color: #D1D8E2;
-      letter-spacing: 0.3px;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
+    .brand-title h1 { margin: 0; font-size: 1.15rem; letter-spacing: 0.5px; font-weight: 700; text-transform: uppercase; }
+    .brand-title span { font-size: 0.8rem; color: #D1D8E2; letter-spacing: 0.3px; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
     .clock-badge {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      letter-spacing: 0.3px;
+      background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.3px;
     }
-
     .btn-refresh {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: opacity 0.2s ease;
+      background: var(--accent); color: white; border: none; padding: 8px 14px;
+      border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: opacity 0.2s ease;
+    }
+    .btn-refresh:hover { opacity: 0.9; }
+    .btn-logout {
+      background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25);
+      padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;
     }
 
-    .btn-refresh:hover {
-      opacity: 0.9;
-    }
+    main { flex: 1; max-width: 900px; width: 100%; margin: 24px auto; padding: 0 16px; }
 
-    /* Main Container */
-    main {
-      flex: 1;
-      max-width: 900px;
-      width: 100%;
-      margin: 24px auto;
-      padding: 0 16px;
+    /* --- LOGIN --- */
+    .login-wrap { max-width: 380px; margin: 60px auto; }
+    .login-card { background: var(--card); border-radius: 12px; padding: 26px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+    .login-card h2 { margin: 0 0 6px; font-size: 1.1rem; color: var(--primary); }
+    .login-card p { margin: 0 0 18px; font-size: 0.85rem; color: var(--text-muted); }
+    .login-card label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #444; }
+    .login-card input {
+      width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.95rem; background: #FAFAFA; margin-bottom: 14px;
     }
-
-    /* Stats Overview */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+    .login-card input:focus { outline: none; border-color: var(--primary); background: #FFF; }
+    .login-card button {
+      width: 100%; background: var(--primary); color: #fff; border: none; padding: 13px;
+      border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer;
     }
+    .login-feedback { text-align: center; margin-top: 12px; font-weight: 600; font-size: 0.85rem; color: var(--red); display: none; }
 
-    .stat-card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-      border-top: 4px solid var(--border);
-      text-align: center;
-    }
-
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card); border-radius: 12px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); border-top: 4px solid var(--border); text-align: center; }
     .stat-card.presenti { border-top-color: var(--green); }
     .stat-card.assenti { border-top-color: var(--red); }
     .stat-card.totale { border-top-color: var(--primary); }
+    .stat-number { font-size: 2rem; font-weight: 800; margin: 4px 0 0; }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
 
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 800;
-      margin: 4px 0 0;
-    }
+    .controls-bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 220px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: #FFF; color: var(--text); }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+    .filter-btn-group { display: flex; gap: 6px; }
+    .filter-btn { border: 1px solid var(--border); background: #FFF; color: var(--text-muted); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .filter-btn.active { background: var(--primary); color: #FFF; border-color: var(--primary); }
 
-    .stat-label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-
-    /* Search & Filter Bar */
-    .controls-bar {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .search-input {
-      flex: 1;
-      min-width: 220px;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background: #FFFFFF;
-      color: var(--text);
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .filter-btn-group {
-      display: flex;
-      gap: 6px;
-    }
-
-    .filter-btn {
-      border: 1px solid var(--border);
-      background: #FFFFFF;
-      color: var(--text-muted);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .filter-btn.active {
-      background: var(--primary);
-      color: #FFFFFF;
-      border-color: var(--primary);
-    }
-
-    /* Resident List */
-    .list-wrapper {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .list-header {
-      padding: 14px 20px;
-      background: #FAFCFE;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--text-muted);
-      display: grid;
-      grid-template-columns: 80px 1fr 140px;
-      align-items: center;
-    }
-
-    .resident-row {
-      display: grid;
-      grid-template-columns: 80px 1fr 140px;
-      align-items: center;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s ease;
-    }
-
-    .resident-row:last-child {
-      border-bottom: none;
-    }
-
-    .resident-row:hover {
-      background: #F9FBFC;
-    }
-
-    .room-badge {
-      display: inline-block;
-      background: #EBF1F6;
-      color: var(--primary);
-      font-weight: 700;
-      font-size: 0.85rem;
-      padding: 5px 8px;
-      border-radius: 6px;
-      text-align: center;
-      width: fit-content;
-    }
-
-    .name-col {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--text);
-    }
-
-    .status-col {
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-    }
-
-    .status-pill.in {
-      background: var(--green-bg);
-      color: var(--green);
-    }
-
-    .status-pill.out {
-      background: var(--red-bg);
-      color: var(--red);
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-    }
-
-    .status-pill.in .status-dot {
-      background: var(--green);
-      box-shadow: 0 0 6px rgba(46, 125, 50, 0.45);
-    }
-
-    .status-pill.out .status-dot {
-      background: var(--red);
-      box-shadow: 0 0 6px rgba(198, 40, 40, 0.45);
-    }
-
-    .loading-state {
-      padding: 40px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
+    .list-wrapper { background: var(--card); border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.04); overflow: hidden; border: 1px solid var(--border); }
+    .list-header { padding: 14px 20px; background: #FAFCFE; border-bottom: 1px solid var(--border); font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); display: grid; grid-template-columns: 80px 1fr 140px; align-items: center; }
+    .resident-row { display: grid; grid-template-columns: 80px 1fr 140px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); transition: background 0.15s ease; }
+    .resident-row:last-child { border-bottom: none; }
+    .resident-row:hover { background: #F9FBFC; }
+    .room-badge { display: inline-block; background: #EBF1F6; color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 5px 8px; border-radius: 6px; text-align: center; width: fit-content; }
+    .name-col { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+    .absence-info { font-weight: 500; font-size: 0.78rem; color: var(--red); margin-top: 3px; }
+    .status-col { display: flex; justify-content: flex-end; }
+    .status-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 30px; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.2px; }
+    .status-pill.in { background: var(--green-bg); color: var(--green); }
+    .status-pill.out { background: var(--red-bg); color: var(--red); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .status-pill.in .status-dot { background: var(--green); box-shadow: 0 0 6px rgba(46,125,50,0.45); }
+    .status-pill.out .status-dot { background: var(--red); box-shadow: 0 0 6px rgba(198,40,40,0.45); }
+    .loading-state { padding: 40px; text-align: center; color: var(--text-muted); font-size: 0.95rem; }
 
     @media (max-width: 560px) {
       .list-header { display: none; }
-      .resident-row {
-        grid-template-columns: 60px 1fr auto;
-        padding: 12px 14px;
-      }
+      .resident-row { grid-template-columns: 60px 1fr auto; padding: 12px 14px; }
       .name-col { font-size: 0.9rem; }
       .status-pill { padding: 4px 10px; font-size: 0.8rem; }
     }
@@ -347,11 +129,29 @@
     </div>
     <div class="header-right">
       <div class="clock-badge" id="liveClock">--:--:--</div>
-      <button class="btn-refresh" onclick="fetchStatus()">Aggiorna</button>
+      <button class="btn-refresh" id="btnAggiorna" onclick="fetchStatus()" style="display:none;">Aggiorna</button>
+      <button class="btn-logout" id="btnLogout" onclick="logout()" style="display:none;">Esci</button>
     </div>
   </header>
 
-  <main>
+  <!-- VISTA LOGIN -->
+  <main id="loginView" style="display:none;">
+    <div class="login-wrap">
+      <div class="login-card">
+        <h2>Accesso Direzione</h2>
+        <p>Inserisci le credenziali per consultare il quadro presenze.</p>
+        <label>Email</label>
+        <input type="email" id="dirEmail" placeholder="direzione@...">
+        <label>Password</label>
+        <input type="password" id="dirPassword" placeholder="••••••••">
+        <button id="btnLogin" onclick="login()">Entra</button>
+        <div class="login-feedback" id="loginFeedback"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- VISTA DASHBOARD -->
+  <main id="dashboardView" style="display:none;">
     <div class="stats-grid">
       <div class="stat-card presenti">
         <div class="stat-label">In Residenza</div>
@@ -389,65 +189,175 @@
   </main>
 
   <script>
-    // INSERISCI QUI IL LINK DELLA TUA WEB APP GOOGLE APPS SCRIPT (lo stesso usato in index.html)
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz615wsVQxV-_kAx3c_sa5qeMg1-5hvliV9sMm66YmJ8Wmd4RmffvkblQvJmWZvVH7BfA/exec";
+    // =================================================================
+    //  CONFIGURAZIONE SUPABASE
+    //  Stesso URL e stessa chiave anon dell'app residenti.
+    // =================================================================
+    const SUPABASE_URL = "https://umemmtyiklwaiifwdgng.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZW1tdHlpa2x3YWlpZndkZ25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA1MDAsImV4cCI6MjEwNjMzNjUwMH0.a5nKSWBVfj-d7JVnadFeXsqoRKgYvcRDNJx62LspKQs";
 
     let residentsData = [];
     let currentFilter = 'all';
+    let autoRefreshAttivo = false;
 
+    // ---------- OROLOGIO ----------
     function updateLiveClock() {
       const now = new Date();
-      const options = {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      };
-      document.getElementById('liveClock').innerText = now.toLocaleString('it-IT', options);
+      document.getElementById('liveClock').innerText = now.toLocaleString('it-IT', {
+        weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
     }
     setInterval(updateLiveClock, 1000);
     updateLiveClock();
 
+    // ---------- SESSIONE / LOGIN ----------
+    function salvaSessione(data) {
+      localStorage.setItem("rup_dir_access", data.access_token);
+      localStorage.setItem("rup_dir_refresh", data.refresh_token);
+      const exp = data.expires_at ? data.expires_at * 1000 : Date.now() + (data.expires_in || 3600) * 1000;
+      localStorage.setItem("rup_dir_expires", String(exp));
+    }
+
+    async function login() {
+      const email = document.getElementById("dirEmail").value.trim();
+      const password = document.getElementById("dirPassword").value;
+      const fb = document.getElementById("loginFeedback");
+      const btn = document.getElementById("btnLogin");
+      fb.style.display = "none";
+      btn.disabled = true; btn.innerText = "Accesso...";
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        if (!res.ok) throw new Error("login");
+        salvaSessione(await res.json());
+        mostraDashboard();
+      } catch (e) {
+        fb.style.display = "block";
+        fb.innerText = "Email o password non corretti.";
+      } finally {
+        btn.disabled = false; btn.innerText = "Entra";
+      }
+    }
+
+    async function sbRefresh() {
+      const rt = localStorage.getItem("rup_dir_refresh");
+      if (!rt) throw new Error("no refresh");
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: "POST",
+        headers: { "apikey": SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: rt })
+      });
+      if (!res.ok) throw new Error("refresh");
+      salvaSessione(await res.json());
+    }
+
+    function logout() {
+      localStorage.removeItem("rup_dir_access");
+      localStorage.removeItem("rup_dir_refresh");
+      localStorage.removeItem("rup_dir_expires");
+      location.reload();
+    }
+
+    function mostraLogin() {
+      document.getElementById("loginView").style.display = "block";
+      document.getElementById("dashboardView").style.display = "none";
+      document.getElementById("btnAggiorna").style.display = "none";
+      document.getElementById("btnLogout").style.display = "none";
+    }
+
+    function mostraDashboard() {
+      document.getElementById("loginView").style.display = "none";
+      document.getElementById("dashboardView").style.display = "block";
+      document.getElementById("btnAggiorna").style.display = "inline-block";
+      document.getElementById("btnLogout").style.display = "inline-block";
+      fetchStatus();
+      if (!autoRefreshAttivo) {
+        setInterval(fetchStatus, 60000); // ricalcolo presente/assente ogni minuto
+        autoRefreshAttivo = true;
+      }
+    }
+
+    // ---------- LETTURA DATI (richiede login) ----------
+    async function sbSelect(path) {
+      const doFetch = () => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + localStorage.getItem("rup_dir_access") }
+      });
+      let res = await doFetch();
+      if (res.status === 401) { await sbRefresh(); res = await doFetch(); }
+      if (!res.ok) throw new Error("select " + res.status);
+      return res.json();
+    }
+
     async function fetchStatus() {
       const listContainer = document.getElementById('residentsList');
       try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=getStatus&timestamp=${new Date().toISOString()}`);
-        residentsData = await response.json();
+        const [residenti, assenze] = await Promise.all([
+          sbSelect("residenti?select=stanza,nome,cognome"),
+          sbSelect("assenze?select=stanza,nome,cognome,inizio,fine")
+        ]);
+
+        const now = Date.now();
+        const norm = s => (s || "").toString().trim().toLowerCase();
+        const chiave = (st, no, co) => norm(st) + "|" + norm(no) + "|" + norm(co);
+
+        // Assenze attive adesso, indicizzate per residente
+        const attive = {};
+        assenze.forEach(a => {
+          const ini = new Date(a.inizio).getTime();
+          const fin = new Date(a.fine).getTime();
+          if (ini <= now && now <= fin) {
+            const k = chiave(a.stanza, a.nome, a.cognome);
+            if (!attive[k] || fin > new Date(attive[k].fine).getTime()) attive[k] = a;
+          }
+        });
+
+        residentsData = residenti.map(r => {
+          const ass = attive[chiave(r.stanza, r.nome, r.cognome)];
+          return {
+            camera: r.stanza,
+            nome: r.nome,
+            cognome: r.cognome,
+            presente: !ass,
+            inizio: ass ? ass.inizio : null,
+            fine: ass ? ass.fine : null
+          };
+        });
+
+        residentsData.sort((a, b) => String(a.camera).localeCompare(String(b.camera), 'it', { numeric: true }));
         renderList();
       } catch (error) {
         console.error("Errore nel recupero dati:", error);
-        listContainer.innerHTML = `
-          <div class="loading-state" style="color: var(--red);">
-            ⚠️ Impossibile caricare i dati. Assicurati che l'URL dello script sia corretto e distribuito a 'Chiunque'.
-          </div>
-        `;
+        if (String(error.message).includes("401") || String(error.message).includes("refresh")) {
+          mostraLogin();
+          return;
+        }
+        listContainer.innerHTML = `<div class="loading-state" style="color: var(--red);">⚠️ Impossibile caricare i dati. Riprova o rifai il login.</div>`;
       }
+    }
+
+    // ---------- RENDER ----------
+    function fmtData(iso) {
+      return new Date(iso).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
 
     function renderList() {
       const listContainer = document.getElementById('residentsList');
       const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
 
-      let inCount = 0;
-      let outCount = 0;
-
-      // Conteggio globale
-      residentsData.forEach(r => {
-        if (r.presente) inCount++;
-        else outCount++;
-      });
+      let inCount = 0, outCount = 0;
+      residentsData.forEach(r => { r.presente ? inCount++ : outCount++; });
 
       document.getElementById('countPresenti').innerText = inCount;
       document.getElementById('countAssenti').innerText = outCount;
       document.getElementById('countTotale').innerText = residentsData.length;
 
-      // Filtro ricerca + filtro stato
       const filtered = residentsData.filter(r => {
-        const matchesSearch = r.nome.toLowerCase().includes(searchTerm) || String(r.camera).toLowerCase().includes(searchTerm);
+        const nomeCompleto = (r.nome + " " + r.cognome).toLowerCase();
+        const matchesSearch = nomeCompleto.includes(searchTerm) || String(r.camera).toLowerCase().includes(searchTerm);
         if (!matchesSearch) return false;
-
         if (currentFilter === 'in') return r.presente;
         if (currentFilter === 'out') return !r.presente;
         return true;
@@ -461,7 +371,10 @@
       listContainer.innerHTML = filtered.map(r => `
         <div class="resident-row">
           <div><span class="room-badge">${r.camera}</span></div>
-          <div class="name-col">${r.nome}</div>
+          <div class="name-col">
+            ${r.nome} ${r.cognome}
+            ${!r.presente ? `<div class="absence-info">Uscito il ${fmtData(r.inizio)} · rientro ${fmtData(r.fine)}</div>` : ``}
+          </div>
           <div class="status-col">
             <span class="status-pill ${r.presente ? 'in' : 'out'}">
               <span class="status-dot"></span>
@@ -472,9 +385,7 @@
       `).join('');
     }
 
-    function filterResidents() {
-      renderList();
-    }
+    function filterResidents() { renderList(); }
 
     function setFilter(filterType, element) {
       currentFilter = filterType;
@@ -483,11 +394,19 @@
       renderList();
     }
 
-    // Carica al primo avvio
-    fetchStatus();
-
-    // Ricarica automaticamente ogni 60 secondi così scatta il rosso/verde in tempo reale
-    setInterval(fetchStatus, 60000);
+    // ---------- AVVIO ----------
+    window.addEventListener('load', async () => {
+      const token = localStorage.getItem("rup_dir_access");
+      const exp = parseInt(localStorage.getItem("rup_dir_expires") || "0", 10);
+      if (token && Date.now() < exp - 60000) {
+        mostraDashboard();
+      } else if (localStorage.getItem("rup_dir_refresh")) {
+        try { await sbRefresh(); mostraDashboard(); }
+        catch { mostraLogin(); }
+      } else {
+        mostraLogin();
+      }
+    });
   </script>
 </body>
 </html>
