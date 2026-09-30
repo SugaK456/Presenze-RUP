@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Residenza Preziosina - Gestione Ospiti</title>
+    <title>Residenza Preziosina - App Studenti</title>
     <!-- Supabase Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -16,6 +16,7 @@
             --text: #1E293B;
             --border: #CBD5E1;
             --danger: #EF4444;
+            --success: #10B981;
         }
 
         * {
@@ -33,7 +34,6 @@
             flex-direction: column;
         }
 
-        /* Header identico all'app esistente */
         .app-header {
             background-color: var(--primary);
             color: white;
@@ -43,19 +43,8 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .app-header h1 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .app-header p {
-            font-size: 0.85rem;
-            color: #94A3B8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .app-header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+        .app-header p { font-size: 0.85rem; color: #94A3B8; text-transform: uppercase; }
 
         .main-container {
             max-width: 500px;
@@ -65,7 +54,6 @@
             flex: 1;
         }
 
-        /* Card Stile Identico */
         .card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -86,131 +74,46 @@
             margin-bottom: 20px;
         }
 
-        .user-badge .info h3 {
-            font-size: 1rem;
-            color: var(--primary);
-        }
+        .user-badge .info h3 { font-size: 1rem; color: var(--primary); }
+        .user-badge .info p { font-size: 0.85rem; color: #64748B; }
+        .user-badge .logout-link { background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: underline; }
 
-        .user-badge .info p {
-            font-size: 0.85rem;
-            color: #64748B;
-        }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: 0.2s; background-color: #FFFFFF; }
+        input:focus, select:focus { border-color: var(--accent); }
 
-        .user-badge .logout-link {
-            background: none;
-            border: none;
-            color: var(--accent);
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-decoration: underline;
-        }
+        .btn-primary { width: 100%; padding: 14px; background-color: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-primary:hover { background-color: var(--accent-hover); }
 
-        .form-group {
-            margin-bottom: 16px;
-        }
+        .btn-checkout { width: 100%; padding: 10px; background-color: white; color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+        .btn-checkout:hover { background-color: #FEF2F2; }
 
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--primary);
-        }
+        .scan-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .btn-scan { padding: 10px; background: #F8FAFC; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--primary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-scan:hover { background: #EDF2F7; border-color: var(--accent); }
 
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-            background-color: #FFFFFF;
-        }
+        .section-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
 
-        input:focus, select:focus {
-            border-color: var(--accent);
-        }
+        /* Stile per i menu a bivi */
+        .home-menu { display: flex; flex-direction: column; gap: 15px; }
+        .menu-card { background: white; border: 2px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .menu-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .menu-card h3 { color: var(--primary); font-size: 1.1rem; margin-bottom: 5px; }
+        .menu-card p { font-size: 0.85rem; color: #64748B; }
 
-        /* Pulsanti d'azione con colore Ambra/Oro */
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: 10px;
-        }
+        .guest-list-item { padding: 16px; border: 1px solid #E2E8F0; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; background: #FFFFFF; }
+        .guest-list-item.active-guest { border-left: 4px solid var(--danger); background-color: #FEF2F2; }
+        .guest-list-item.completed-guest { border-left: 4px solid var(--success); opacity: 0.7; }
+        
+        .guest-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        
+        .badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
+        .badge-active { background: #FEE2E2; color: #991B1B; }
+        .badge-success { background: #D1E7DD; color: #0F5132; }
 
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .scan-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .btn-scan {
-            padding: 10px;
-            background: #F8FAFC;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn-scan:hover {
-            background: #EDF2F7;
-            border-color: var(--accent);
-        }
-
-        .section-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-
-        .guest-list-item {
-            padding: 12px;
-            border: 1px solid #E2E8F0;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .guest-list-item.alert-missing-checkout {
-            border-color: var(--danger);
-            background-color: #FEF2F2;
-        }
-
-        .badge-status {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        .badge-active { background: #FEF3C7; color: #92400E; }
-        .badge-alert { background: #FEE2E2; color: #991B1B; }
+        .back-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; font-size: 0.9rem; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 6px; }
+        .back-btn:hover { text-decoration: underline; }
 
         .hidden { display: none; }
     </style>
@@ -218,13 +121,13 @@
 <body>
 
     <header class="app-header">
-        <h1>RESIDENZA UNIVERSITARIA PREZIOSINA</h1>
-        <p>Registrazione e Gestione Ospiti</p>
+        <h1>RESIDENZA PREZIOSINA</h1>
+        <p>App Studenti - Area Ospiti</p>
     </header>
 
     <div class="main-container">
         
-        <!-- Sezione Login Residente -->
+        <!-- SEZIONE 1: LOGIN -->
         <div id="loginSection" class="card">
             <h3 class="section-title" style="margin-bottom: 16px;">Accesso Residente</h3>
             <div class="form-group">
@@ -235,77 +138,90 @@
                 <label for="loginStanza">Numero Stanza</label>
                 <input type="text" id="loginStanza" placeholder="es. 101">
             </div>
-            <button class="btn-primary" onclick="salvaProfilo()">Accedi</button>
+            <button class="btn-primary" onclick="salvaProfilo()">Accedi all'App</button>
         </div>
 
-        <!-- Sezione Principale Registrazione Ospite -->
+        <!-- APP PRINCIPALE -->
         <div id="appSection" class="hidden">
             <div class="user-badge">
                 <div class="info">
-                    <h3 id="userDisplay">Stanza 101 - Maria Rossi</h3>
-                    <p>Ospiti in struttura</p>
+                    <h3 id="userDisplay">Stanza - Nome</h3>
+                    <p>Gestione Accessi</p>
                 </div>
-                <button class="logout-link" onclick="logout()">Cambia</button>
+                <button class="logout-link" onclick="logout()">Esci</button>
             </div>
 
-            <div class="card">
-                <h3 class="section-title">Registra Nuovo Ospite</h3>
-                
-                <div class="scan-buttons">
-                    <button type="button" class="btn-scan" onclick="scansionaPassaporto()">
-                        📷 Fotocamera (Passaporto)
-                    </button>
-                    <button type="button" class="btn-scan" onclick="scansionaNFC()">
-                        📱 NFC (Carta d'Identità)
-                    </button>
-                </div>
-
-                <div class="form-group">
-                    <label for="nomeOspite">Nome Ospite</label>
-                    <input type="text" id="nomeOspite" placeholder="Nome dell'ospite">
-                </div>
-
-                <div class="form-group">
-                    <label for="cognomeOspite">Cognome Ospite</label>
-                    <input type="text" id="cognomeOspite" placeholder="Cognome dell'ospite">
-                </div>
-
-                <div class="form-group">
-                    <label for="tipoDoc">Tipo Documento</label>
-                    <select id="tipoDoc">
-                        <option value="Carta d'Identità">Carta d'Identità (CIE)</option>
-                        <option value="Passaporto">Passaporto</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="numDoc">Numero Documento</label>
-                    <input type="text" id="numDoc" placeholder="es. AB12345CD">
-                </div>
-
-                <div class="form-group">
-                    <label for="orarioUscitaPrevisto">Orario Uscita Previsto (Facoltativo)</label>
-                    <input type="datetime-local" id="orarioUscitaPrevisto">
-                    <small style="color: #64748B; font-size: 0.75rem;">Se dimenticato, verrà segnalato in rosso per la direttrice.</small>
-                </div>
-
-                <button class="btn-primary" onclick="registraOspite()">Registra Ingresso Ospite</button>
-            </div>
-
-            <div class="card">
-                <h3 class="section-title">I tuoi ospiti registrati oggi</h3>
-                <div id="listaOspitiContainer">
-                    <p style="font-size: 0.85rem; color: #64748B;">Caricamento...</p>
+            <!-- SEZIONE 2: MENU PRINCIPALE (BIVIO) -->
+            <div id="menuView">
+                <div class="home-menu">
+                    <div class="menu-card" onclick="mostraSezione('registraView')">
+                        <h3>➕ Registra Nuovo Ospite</h3>
+                        <p>Dichiara l'ingresso di un ospite tramite foto o NFC.</p>
+                    </div>
+                    <div class="menu-card" onclick="mostraSezione('listaView')">
+                        <h3>📋 Le Mie Registrazioni (Uscite)</h3>
+                        <p>Vedi i tuoi ospiti e registra la loro uscita effettiva.</p>
+                    </div>
                 </div>
             </div>
+
+            <!-- SEZIONE 3: FORM DI REGISTRAZIONE -->
+            <div id="registraView" class="hidden">
+                <button class="back-btn" onclick="tornaMenu()">⬅️ Torna al Menu</button>
+                <div class="card">
+                    <h3 class="section-title">Dati Ingresso Ospite</h3>
+                    
+                    <div class="scan-buttons">
+                        <button type="button" class="btn-scan" onclick="scansionaPassaporto()">📷 Passaporto</button>
+                        <button type="button" class="btn-scan" onclick="scansionaNFC()">📱 Carta Identità (NFC)</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="nomeOspite">Nome Ospite</label>
+                        <input type="text" id="nomeOspite" placeholder="Nome">
+                    </div>
+                    <div class="form-group">
+                        <label for="cognomeOspite">Cognome Ospite</label>
+                        <input type="text" id="cognomeOspite" placeholder="Cognome">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoDoc">Tipo Documento</label>
+                        <select id="tipoDoc">
+                            <option value="Carta d'Identità">Carta d'Identità (CIE)</option>
+                            <option value="Passaporto">Passaporto</option>
+                            <option value="Patente">Patente di Guida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="numDoc">Numero Documento</label>
+                        <input type="text" id="numDoc" placeholder="es. AB12345CD">
+                    </div>
+
+                    <button class="btn-primary" onclick="registraOspite()">Invia Registrazione Ingresso</button>
+                </div>
+            </div>
+
+            <!-- SEZIONE 4: LISTA OSPITI E CHECK-OUT -->
+            <div id="listaView" class="hidden">
+                <button class="back-btn" onclick="tornaMenu()">⬅️ Torna al Menu</button>
+                <div class="card">
+                    <h3 class="section-title">Ospiti Registrati</h3>
+                    <p style="font-size: 0.8rem; color: #64748B; margin-bottom: 15px;">Assicurati di premere "Registra Uscita" quando il tuo ospite lascia la struttura.</p>
+                    
+                    <div id="listaOspitiContainer">
+                        <p style="font-size: 0.85rem; color: #64748B;">Caricamento...</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
     <script>
-        // Credenziali Supabase incorporate direttamente
-        const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
-        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
+        // CHIAVI DEL PROGETTO CORRETTO: "PREZIOSINA PRESENZE"
+        const SUPA_URL = "https://umemmtyiklwaiifwdgng.supabase.co";
+        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZW1tdHlpa2x3YWlpZndkZ25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA1MDAsImV4cCI6MjEwNjMzNjUwMH0.a5nKSWBVfj-d7JVnadFeXsqoRKgYvcRDNJx62LspKQs";
         
         let supabaseClient = null;
 
@@ -314,6 +230,7 @@
             checkAuth();
         });
 
+        // ================== AUTENTICAZIONE ==================
         function checkAuth() {
             const nome = localStorage.getItem('prez_nome');
             const stanza = localStorage.getItem('prez_stanza');
@@ -322,7 +239,7 @@
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('appSection').classList.remove('hidden');
                 document.getElementById('userDisplay').textContent = `Stanza ${stanza} - ${nome}`;
-                caricaOspitiOdierni();
+                tornaMenu(); // Mostra il menu principale
             } else {
                 document.getElementById('loginSection').classList.remove('hidden');
                 document.getElementById('appSection').classList.add('hidden');
@@ -334,7 +251,7 @@
             const stanza = document.getElementById('loginStanza').value.trim();
 
             if (!nome || !stanza) {
-                alert('Inserisci nome e numero stanza.');
+                alert('Inserisci nome e numero stanza per continuare.');
                 return;
             }
 
@@ -349,131 +266,162 @@
             checkAuth();
         }
 
-        // Funzioni simulate per NFC e Fotocamera OCR
-        async function scansionaNFC() {
-            if ('NDEFReader' in window) {
-                try {
-                    const ndef = new NDEFReader();
-                    await ndef.scan();
-                    alert("Avvicina la Carta d'Identità NFC al retro del dispositivo...");
-                    ndef.onreading = event => {
-                        document.getElementById('tipoDoc').value = "Carta d'Identità";
-                        document.getElementById('nomeOspite').value = "Mario";
-                        document.getElementById('cognomeOspite').value = "Rossi";
-                        document.getElementById('numDoc').value = "CA98765XY";
-                        alert("Carta d'Identità scansionata con successo tramite NFC!");
-                    };
-                } catch (error) {
-                    alert("Errore lettura NFC: " + error);
-                }
-            } else {
-                alert("Lettura NFC simulata (Dispositivo non supporta Web NFC diretto). Compilazione automatica dati test.");
-                document.getElementById('tipoDoc').value = "Carta d'Identità";
-                document.getElementById('nomeOspite').value = "Luca";
-                document.getElementById('cognomeOspite').value = "Bianchi";
-                document.getElementById('numDoc').value = "AX45678ZZ";
+        // ================== NAVIGAZIONE ==================
+        function tornaMenu() {
+            document.getElementById('menuView').classList.remove('hidden');
+            document.getElementById('registraView').classList.add('hidden');
+            document.getElementById('listaView').classList.add('hidden');
+        }
+
+        function mostraSezione(sezione) {
+            document.getElementById('menuView').classList.add('hidden');
+            document.getElementById('registraView').classList.add('hidden');
+            document.getElementById('listaView').classList.add('hidden');
+            
+            document.getElementById(sezione).classList.remove('hidden');
+
+            if(sezione === 'listaView') {
+                caricaImeiOspiti();
             }
         }
 
-        function scansionaPassaporto() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.capture = 'environment';
-            input.onchange = e => {
-                alert("Scansione fotocamera completata. Dati del passaporto estratti con successo!");
-                document.getElementById('tipoDoc').value = "Passaporto";
-                document.getElementById('nomeOspite').value = "John";
-                document.getElementById('cognomeOspite').value = "Smith";
-                document.getElementById('numDoc').value = "YA1234567";
-            };
-            input.click();
+        // ================== FUNZIONI SIMULATE SCANNER ==================
+        async function scansionaNFC() {
+            alert("Lettura NFC simulata. Compilazione automatica dati di test.");
+            document.getElementById('tipoDoc').value = "Carta d'Identità";
+            document.getElementById('nomeOspite').value = "Luca";
+            document.getElementById('cognomeOspite').value = "Bianchi";
+            document.getElementById('numDoc').value = "AX45678ZZ";
         }
 
+        function scansionaPassaporto() {
+            alert("Scansione fotocamera simulata. Dati del passaporto estratti!");
+            document.getElementById('tipoDoc').value = "Passaporto";
+            document.getElementById('nomeOspite').value = "John";
+            document.getElementById('cognomeOspite').value = "Smith";
+            document.getElementById('numDoc').value = "YA1234567";
+        }
+
+        // ================== REGISTRAZIONE INGRESSO ==================
         async function registraOspite() {
             const nome = document.getElementById('nomeOspite').value.trim();
             const cognome = document.getElementById('cognomeOspite').value.trim();
             const tipoDoc = document.getElementById('tipoDoc').value;
             const numDoc = document.getElementById('numDoc').value.trim();
-            const checkOutUscita = document.getElementById('orarioUscitaPrevisto').value;
 
             const residenteNome = localStorage.getItem('prez_nome');
             const residenteStanza = localStorage.getItem('prez_stanza');
 
             if (!nome || !cognome || !numDoc) {
-                alert('Compila tutti i campi obbligatori dell ospite.');
+                alert('Compila tutti i campi per registrare l\'ingresso.');
                 return;
             }
 
             const { data, error } = await supabaseClient
                 .from('ospiti_preziosina')
-                .insert([
-                    { 
-                        nome: nome,
-                        cognome: cognome,
-                        tipo_documento: tipoDoc,
-                        numero_documento: numDoc,
-                        residente_nome: residenteNome,
-                        residente_stanza: residenteStanza,
-                        orario_uscita_previsto: checkOutUscita ? checkOutUscita : null
-                    }
-                ]);
+                .insert([{ 
+                    nome: nome,
+                    cognome: cognome,
+                    tipo_documento: tipoDoc,
+                    numero_documento: numDoc,
+                    residente_nome: residenteNome,
+                    residente_stanza: residenteStanza,
+                    orario_uscita_previsto: null // Rimane vuoto finché non esce
+                }]);
 
             if (error) {
                 alert('Errore durante il salvataggio: ' + error.message);
             } else {
-                alert('Ospite registrato con successo!');
+                alert('Ingresso ospite registrato con successo! Ricordati di segnalare l\'uscita quando se ne andrà.');
+                // Pulisce il form
                 document.getElementById('nomeOspite').value = '';
                 document.getElementById('cognomeOspite').value = '';
                 document.getElementById('numDoc').value = '';
-                document.getElementById('orarioUscitaPrevisto').value = '';
-                caricaOspitiOdierni();
+                
+                // Riporta al menu
+                tornaMenu();
             }
         }
 
-        async function caricaOspitiOdierni() {
+        // ================== LISTA E REGISTRAZIONE USCITA ==================
+        async function caricaImeiOspiti() {
             const residenteStanza = localStorage.getItem('prez_stanza');
+            const residenteNome = localStorage.getItem('prez_nome');
             const container = document.getElementById('listaOspitiContainer');
             
+            container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Caricamento...</p>`;
+
             const { data, error } = await supabaseClient
                 .from('ospiti_preziosina')
                 .select('*')
                 .eq('residente_stanza', residenteStanza)
+                // Se vuoi essere stringente puoi aggiungere: .eq('residente_nome', residenteNome)
                 .order('created_at', { ascending: false });
 
             if (error) {
-                container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento dati.</p>`;
+                container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento dati: ${error.message}</p>`;
                 return;
             }
 
             if (!data || data.length === 0) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun ospite registrato di recente.</p>`;
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Non hai ancora registrato nessun ospite.</p>`;
                 return;
             }
 
             let html = '';
-            const oraCorrente = new Date();
 
             data.forEach(ospite => {
-                let senzaUscita = !ospite.orario_uscita_previsto;
-                if (!senzaUscita && new Date(ospite.orario_uscita_previsto) < oraCorrente) {
-                    senzaUscita = true;
-                }
-
+                const haGiaFattoCheckout = ospite.orario_uscita_previsto !== null;
+                const dIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+                
                 html += `
-                    <div class="guest-list-item ${senzaUscita ? 'alert-missing-checkout' : ''}">
-                        <div>
-                            <strong>${ospite.nome} ${ospite.cognome}</strong><br>
-                            <small style="color: #64748B;">Doc: ${ospite.tipo_documento} (${ospite.numero_documento})</small>
+                    <div class="guest-list-item ${haGiaFattoCheckout ? 'completed-guest' : 'active-guest'}">
+                        <div class="guest-header">
+                            <div>
+                                <strong>${ospite.nome} ${ospite.cognome}</strong><br>
+                                <small style="color: #64748B;">Entrato il: ${dIngresso}</small>
+                            </div>
+                            <div>
+                                ${haGiaFattoCheckout 
+                                    ? '<span class="badge badge-success">Uscito</span>' 
+                                    : '<span class="badge badge-active">In Struttura</span>'}
+                            </div>
                         </div>
-                        <div>
-                            ${senzaUscita ? '<span class="badge-status badge-alert">Uscita Mancante</span>' : '<span class="badge-status badge-active">Registrato</span>'}
-                        </div>
+                        
+                        ${!haGiaFattoCheckout ? `
+                            <button class="btn-checkout" onclick="segnaUscita('${ospite.id}')">
+                                🚪 Clicca qui per Segnare l'Uscita
+                            </button>
+                        ` : `
+                            <div style="margin-top: 8px; font-size: 0.8rem; color: #10B981;">
+                                ✓ Uscita registrata alle ${new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { timeStyle: 'short' })}
+                            </div>
+                        `}
                     </div>
                 `;
             });
 
             container.innerHTML = html;
+        }
+
+        async function segnaUscita(ospiteId) {
+            if (!confirm("Confermi che questo ospite sta uscendo dalla struttura ORA?")) {
+                return;
+            }
+
+            const orarioUscitaEffettivo = new Date().toISOString();
+
+            const { error } = await supabaseClient
+                .from('ospiti_preziosina')
+                .update({ orario_uscita_previsto: orarioUscitaEffettivo })
+                .eq('id', ospiteId);
+
+            if (error) {
+                alert("Errore durante l'aggiornamento: " + error.message);
+            } else {
+                alert("Uscita registrata con successo!");
+                caricaImeiOspiti(); // Ricarica la lista per mostrare la modifica
+            }
         }
     </script>
 </body>
