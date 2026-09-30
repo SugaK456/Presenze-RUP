@@ -150,10 +150,9 @@
 
     </div>
 
-    <!-- Tutto il JavaScript deve stare dentro a questo blocco script -->
     <script>
-        const SUPA_URL = "https://tbhegcxlhbbullauebqe.supabase.co";
-        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiaGVnY3hsaGJidWxsYXVlYnFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcxNDMsImV4cCI6MjEwNjM0MzE0M30.A-BtkiFnMssFxg8iqm9TvGbEmM5wJlof7DPlZo0zUBw";
+        const SUPA_URL = "https://umemmtyiklwaiifwdgng.supabase.co";
+        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZW1tdHlpa2x3YWlpZndkZ25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA1MDAsImV4cCI6MjEwNjMzNjUwMH0.a5nKSWBVfj-d7JVnadFeXsqoRKgYvcRDNJx62LspKQs";
         
         let supabaseClient = null;
         let datiUnificatiCache = [];
@@ -180,88 +179,74 @@
 
         async function caricaOspitiDirezione() {
             const container = document.getElementById('ospitiTableContainer');
-            try {
-                // Fetch ospiti
-                const res = await fetch(`${SUPA_URL}/rest/v1/ospiti_preziosina?select=*&order=created_at.desc`, {
-                    headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-                });
-                if (!res.ok) throw new Error(`Errore API HTTP: ${res.status} ${res.statusText}`);
-                const data = await res.json();
-                
-                if (!data || data.length === 0) {
-                    container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun ospite registrato al momento.</p>`;
-                    return;
-                }
+            const { data, error } = await supabaseClient.from('ospiti_preziosina').select('*').order('created_at', { ascending: false });
 
-                let html = `<table><thead><tr><th>Studente</th><th>Stanza</th><th>Ospite</th><th>Documento</th><th>Ingresso</th><th>Uscita</th></tr></thead><tbody>`;
-                const oraCorrente = new Date();
-
-                data.forEach(ospite => {
-                    let senzaUscita = !ospite.orario_uscita_previsto;
-                    if (!senzaUscita && new Date(ospite.orario_uscita_previsto) < oraCorrente) senzaUscita = true;
-
-                    let dIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
-                    let dUscita = ospite.orario_uscita_previsto ? new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : '<span class="badge badge-danger">Verificare</span>';
-
-                    html += `<tr class="${senzaUscita ? 'alert-row' : ''}">
-                        <td><strong>${ospite.residente_nome || 'N/A'}</strong></td><td>St. ${ospite.residente_stanza || 'N/A'}</td>
-                        <td>${ospite.nome || ''} ${ospite.cognome || ''}</td><td><small>${ospite.tipo_documento || 'N/A'}<br><b>${ospite.numero_documento || 'N/A'}</b></small></td>
-                        <td>${dIngresso}</td><td>${dUscita}</td></tr>`;
-                });
-                html += `</tbody></table>`;
-                container.innerHTML = html;
-            } catch (err) {
-                 container.innerHTML = `<div class="alert-box">Errore lettura ospiti: ${err.message}</div>`;
+            if (error) {
+                container.innerHTML = `<p style="color:var(--danger);">Nessun ospite ancora registrato, o tabella non trovata.</p>`;
+                return;
             }
+            if (!data || data.length === 0) {
+                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Nessun ospite registrato al momento.</p>`;
+                return;
+            }
+
+            let html = `<table><thead><tr><th>Studente</th><th>Stanza</th><th>Ospite</th><th>Documento</th><th>Ingresso</th><th>Uscita</th></tr></thead><tbody>`;
+            const oraCorrente = new Date();
+
+            data.forEach(ospite => {
+                let senzaUscita = !ospite.orario_uscita_previsto;
+                if (!senzaUscita && new Date(ospite.orario_uscita_previsto) < oraCorrente) senzaUscita = true;
+
+                let dIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+                let dUscita = ospite.orario_uscita_previsto ? new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : '<span class="badge badge-danger">Verificare</span>';
+
+                html += `<tr class="${senzaUscita ? 'alert-row' : ''}">
+                    <td><strong>${ospite.residente_nome || 'N/A'}</strong></td><td>St. ${ospite.residente_stanza || 'N/A'}</td>
+                    <td>${ospite.nome || ''} ${ospite.cognome || ''}</td><td><small>${ospite.tipo_documento || 'N/A'}<br><b>${ospite.numero_documento || 'N/A'}</b></small></td>
+                    <td>${dIngresso}</td><td>${dUscita}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
         }
 
         async function caricaResidentiEAssenze() {
             const container = document.getElementById('residentiTableContainer');
 
-            try {
-                 // 1. Fetch Residenti bypassando il client Supabase std, uso REST API diretto
-                 const resR = await fetch(`${SUPA_URL}/rest/v1/residenti?select=*`, {
-                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-                 });
-                 if (!resR.ok) throw new Error(`Fetch Residenti Fallito HTTP ${resR.status}`);
-                 const residenti = await resR.json();
-
-                 if (!residenti || residenti.length === 0) {
-                     container.innerHTML = `<div class="alert-box">La tabella residenti è vuota. Inserisci i dati su Supabase.</div>`;
-                     return;
-                 }
-
-                 // 2. Fetch Assenze
-                 const resA = await fetch(`${SUPA_URL}/rest/v1/assenze?select=*`, {
-                     headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
-                 });
-                 if (!resA.ok) throw new Error(`Fetch Assenze Fallito HTTP ${resA.status}`);
-                 const assenze = await resA.json();
-                 
-                 const oraCorrente = new Date();
-
-                 datiUnificatiCache = residenti.map(res => {
-                     const nomeCompleto = `${res.nome || ''} ${res.cognome || ''}`.trim();
-                     const assenzaAttiva = assenze.find(a => {
-                         if(!a.inizio || !a.fine) return false;
-                         let inizio = new Date(a.inizio); let fine = new Date(a.fine);
-                         let okStanza = String(a.stanza).trim() === String(res.stanza).trim();
-                         return okStanza && oraCorrente >= inizio && oraCorrente <= fine;
-                     });
-                     return {
-                         stanza: res.stanza, nome: nomeCompleto,
-                         isAssente: !!assenzaAttiva,
-                         inizioAssenza: assenzaAttiva ? assenzaAttiva.inizio : null,
-                         fineAssenza: assenzaAttiva ? assenzaAttiva.fine : null
-                     };
-                 });
-                 
-                 datiUnificatiCache.sort((a, b) => String(a.stanza).localeCompare(String(b.stanza), undefined, {numeric: true}));
-                 applicaFiltriResidenti();
-
-            } catch(err) {
-                 container.innerHTML = `<div class="alert-box">Errore critico: ${err.message}. <br><br><b>Soluzione in Supabase:</b> Vai in 'SQL Editor', esegui: <br><code>GRANT ALL ON TABLE residenti TO anon; GRANT ALL ON TABLE assenze TO anon; NOTIFY pgrst, 'reload schema';</code></div>`;
+            // 1. Carica residenti
+            const resResidenti = await supabaseClient.from('residenti').select('*');
+            if (resResidenti.error) {
+                container.innerHTML = `<div class="alert-box">Errore lettura residenti: ${resResidenti.error.message}</div>`;
+                return;
             }
+            const residenti = resResidenti.data || [];
+            
+            if (residenti.length === 0) {
+                container.innerHTML = `<div class="alert-box">Nessun residente trovato nel database.</div>`;
+                return;
+            }
+
+            // 2. Carica assenze
+            const resAssenze = await supabaseClient.from('assenze').select('*');
+            const assenze = resAssenze.data || [];
+            const oraCorrente = new Date();
+
+            datiUnificatiCache = residenti.map(res => {
+                const nomeCompleto = `${res.nome || ''} ${res.cognome || ''}`.trim();
+                const assenzaAttiva = assenze.find(a => {
+                    if(!a.inizio || !a.fine) return false;
+                    let inizio = new Date(a.inizio); let fine = new Date(a.fine);
+                    let okStanza = String(a.stanza).trim() === String(res.stanza).trim();
+                    return okStanza && oraCorrente >= inizio && oraCorrente <= fine;
+                });
+                return {
+                    stanza: res.stanza, nome: nomeCompleto,
+                    isAssente: !!assenzaAttiva,
+                    inizioAssenza: assenzaAttiva ? assenzaAttiva.inizio : null,
+                    fineAssenza: assenzaAttiva ? assenzaAttiva.fine : null
+                };
+            });
+            datiUnificatiCache.sort((a, b) => String(a.stanza).localeCompare(String(b.stanza), undefined, {numeric: true}));
+            applicaFiltriResidenti();
         }
 
         function impostaFiltro(tipo) {
