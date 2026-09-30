@@ -218,15 +218,12 @@
 
     </div>
 
+    <!-- SCRIPT AGGIORNATO CON CHIAMATE REST DIRETTE (Bypass Cache) -->
     <script>
-        // CHIAVI DEL PROGETTO CORRETTO: "PREZIOSINA PRESENZE"
         const SUPA_URL = "https://umemmtyiklwaiifwdgng.supabase.co";
         const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtZW1tdHlpa2x3YWlpZndkZ25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjA1MDAsImV4cCI6MjEwNjMzNjUwMH0.a5nKSWBVfj-d7JVnadFeXsqoRKgYvcRDNJx62LspKQs";
         
-        let supabaseClient = null;
-
         document.addEventListener('DOMContentLoaded', () => {
-            supabaseClient = supabase.createClient(SUPA_URL, SUPA_KEY);
             checkAuth();
         });
 
@@ -239,7 +236,7 @@
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('appSection').classList.remove('hidden');
                 document.getElementById('userDisplay').textContent = `Stanza ${stanza} - ${nome}`;
-                tornaMenu(); // Mostra il menu principale
+                tornaMenu(); 
             } else {
                 document.getElementById('loginSection').classList.remove('hidden');
                 document.getElementById('appSection').classList.add('hidden');
@@ -302,7 +299,7 @@
             document.getElementById('numDoc').value = "YA1234567";
         }
 
-        // ================== REGISTRAZIONE INGRESSO ==================
+        // ================== REGISTRAZIONE INGRESSO (REST API) ==================
         async function registraOspite() {
             const nome = document.getElementById('nomeOspite').value.trim();
             const cognome = document.getElementById('cognomeOspite').value.trim();
@@ -317,91 +314,109 @@
                 return;
             }
 
-            const { data, error } = await supabaseClient
-                .from('ospiti_preziosina')
-                .insert([{ 
-                    nome: nome,
-                    cognome: cognome,
-                    tipo_documento: tipoDoc,
-                    numero_documento: numDoc,
-                    residente_nome: residenteNome,
-                    residente_stanza: residenteStanza,
-                    orario_uscita_previsto: null // Rimane vuoto finché non esce
-                }]);
+            try {
+                // Chiamata REST diretta per ignorare la cache buggata
+                const res = await fetch(`${SUPA_URL}/rest/v1/ospiti_preziosina`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPA_KEY,
+                        'Authorization': `Bearer ${SUPA_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({
+                        nome: nome,
+                        cognome: cognome,
+                        tipo_documento: tipoDoc,
+                        numero_documento: numDoc,
+                        residente_nome: residenteNome,
+                        residente_stanza: residenteStanza,
+                        orario_uscita_previsto: null
+                    })
+                });
 
-            if (error) {
-                alert('Errore durante il salvataggio: ' + error.message);
-            } else {
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || `Errore API HTTP ${res.status}`);
+                }
+
                 alert('Ingresso ospite registrato con successo! Ricordati di segnalare l\'uscita quando se ne andrà.');
-                // Pulisce il form
                 document.getElementById('nomeOspite').value = '';
                 document.getElementById('cognomeOspite').value = '';
                 document.getElementById('numDoc').value = '';
-                
-                // Riporta al menu
                 tornaMenu();
+
+            } catch (error) {
+                alert('Errore durante il salvataggio: ' + error.message);
             }
         }
 
-        // ================== LISTA E REGISTRAZIONE USCITA ==================
+        // ================== LISTA E REGISTRAZIONE USCITA (REST API) ==================
         async function caricaImeiOspiti() {
             const residenteStanza = localStorage.getItem('prez_stanza');
-            const residenteNome = localStorage.getItem('prez_nome');
             const container = document.getElementById('listaOspitiContainer');
             
             container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Caricamento...</p>`;
 
-            const { data, error } = await supabaseClient
-                .from('ospiti_preziosina')
-                .select('*')
-                .eq('residente_stanza', residenteStanza)
-                // Se vuoi essere stringente puoi aggiungere: .eq('residente_nome', residenteNome)
-                .order('created_at', { ascending: false });
+            try {
+                // Chiamata REST diretta per leggere
+                const res = await fetch(`${SUPA_URL}/rest/v1/ospiti_preziosina?residente_stanza=eq.${residenteStanza}&order=created_at.desc`, {
+                    headers: {
+                        'apikey': SUPA_KEY,
+                        'Authorization': `Bearer ${SUPA_KEY}`
+                    }
+                });
 
-            if (error) {
-                container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento dati: ${error.message}</p>`;
-                return;
-            }
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || `Errore HTTP ${res.status}`);
+                }
 
-            if (!data || data.length === 0) {
-                container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Non hai ancora registrato nessun ospite.</p>`;
-                return;
-            }
+                const data = await res.json();
 
-            let html = '';
+                if (!data || data.length === 0) {
+                    container.innerHTML = `<p style="font-size: 0.85rem; color: #64748B;">Non hai ancora registrato nessun ospite.</p>`;
+                    return;
+                }
 
-            data.forEach(ospite => {
-                const haGiaFattoCheckout = ospite.orario_uscita_previsto !== null;
-                const dIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
-                
-                html += `
-                    <div class="guest-list-item ${haGiaFattoCheckout ? 'completed-guest' : 'active-guest'}">
-                        <div class="guest-header">
-                            <div>
-                                <strong>${ospite.nome} ${ospite.cognome}</strong><br>
-                                <small style="color: #64748B;">Entrato il: ${dIngresso}</small>
+                let html = '';
+
+                data.forEach(ospite => {
+                    const haGiaFattoCheckout = ospite.orario_uscita_previsto !== null;
+                    const dIngresso = new Date(ospite.created_at).toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' });
+                    
+                    html += `
+                        <div class="guest-list-item ${haGiaFattoCheckout ? 'completed-guest' : 'active-guest'}">
+                            <div class="guest-header">
+                                <div>
+                                    <strong>${ospite.nome} ${ospite.cognome}</strong><br>
+                                    <small style="color: #64748B;">Entrato il: ${dIngresso}</small>
+                                </div>
+                                <div>
+                                    ${haGiaFattoCheckout 
+                                        ? '<span class="badge badge-success">Uscito</span>' 
+                                        : '<span class="badge badge-active">In Struttura</span>'}
+                                </div>
                             </div>
-                            <div>
-                                ${haGiaFattoCheckout 
-                                    ? '<span class="badge badge-success">Uscito</span>' 
-                                    : '<span class="badge badge-active">In Struttura</span>'}
-                            </div>
+                            
+                            ${!haGiaFattoCheckout ? `
+                                <button class="btn-checkout" onclick="segnaUscita('${ospite.id}')">
+                                    🚪 Clicca qui per Segnare l'Uscita
+                                </button>
+                            ` : `
+                                <div style="margin-top: 8px; font-size: 0.8rem; color: #10B981;">
+                                    ✓ Uscita registrata alle ${new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { timeStyle: 'short' })}
+                                </div>
+                            `}
                         </div>
-                        
-                        ${!haGiaFattoCheckout ? `
-                            <button class="btn-checkout" onclick="segnaUscita('${ospite.id}')">
-                                🚪 Clicca qui per Segnare l'Uscita
-                            </button>
-                        ` : `
-                            <div style="margin-top: 8px; font-size: 0.8rem; color: #10B981;">
-                                ✓ Uscita registrata alle ${new Date(ospite.orario_uscita_previsto).toLocaleString('it-IT', { timeStyle: 'short' })}
-                            </div>
-                        `}
-                    </div>
-                `;
-            });
+                    `;
+                });
 
-            container.innerHTML = html;
+                container.innerHTML = html;
+
+            } catch (error) {
+                container.innerHTML = `<p style="color:var(--danger); font-size:0.85rem;">Errore caricamento dati: ${error.message}</p>`;
+            }
         }
 
         async function segnaUscita(ospiteId) {
@@ -411,16 +426,29 @@
 
             const orarioUscitaEffettivo = new Date().toISOString();
 
-            const { error } = await supabaseClient
-                .from('ospiti_preziosina')
-                .update({ orario_uscita_previsto: orarioUscitaEffettivo })
-                .eq('id', ospiteId);
+            try {
+                // Chiamata REST diretta (PATCH) per aggiornare
+                const res = await fetch(`${SUPA_URL}/rest/v1/ospiti_preziosina?id=eq.${ospiteId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPA_KEY,
+                        'Authorization': `Bearer ${SUPA_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify({ orario_uscita_previsto: orarioUscitaEffettivo })
+                });
 
-            if (error) {
-                alert("Errore durante l'aggiornamento: " + error.message);
-            } else {
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || `Errore HTTP ${res.status}`);
+                }
+
                 alert("Uscita registrata con successo!");
-                caricaImeiOspiti(); // Ricarica la lista per mostrare la modifica
+                caricaImeiOspiti(); // Ricarica la lista
+                
+            } catch (error) {
+                alert("Errore durante l'aggiornamento: " + error.message);
             }
         }
     </script>
